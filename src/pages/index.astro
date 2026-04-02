@@ -1,0 +1,29 @@
+---
+import { getCollection } from 'astro:content';
+const allProducts = await getCollection('products');
+---
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SFP Inventory - Professional Fiber Modules</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 50px auto; text-align: center; }
+        .product-link { display: block; margin: 10px; padding: 15px; border: 1px solid #eee; text-decoration: none; color: #333; border-radius: 8px; }
+        .product-link:hover { background: #f9f9f9; border-color: #007bff; }
+    </style>
+</head>
+<body>
+    <h1>Welcome to SFP Inventory</h1>
+    <p>We provide high-quality, tested fiber optic modules.</p>
+    <hr />
+    <h2>Our Products</h2>
+    <div style="margin-top: 20px;">
+        {allProducts.map(product => (
+            <a href={`/products/${product.slug}`} class="product-link">
+                <strong>{product.data.brand}</strong> - {product.data.model} ({product.data.pn})
+            </a>
+        ))}
+    </div>
+</body>
+</html>
