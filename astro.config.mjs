@@ -1,8 +1,9 @@
 import { defineConfig } from 'astro/config';
-import sitemap from '@astrojs/sitemap';
+// 暂时把下面这行 sitemap 删掉或注释掉
+// import sitemap from '@astrojs/sitemap'; 
 
 export default defineConfig({
-  // 暂时可以用 Cloudflare 给你的临时域名，后期换成你自己的
-  site: 'https://sfp-inventory.pages.dev', 
-  integrations: [sitemap()],
+  site: 'https://sfp-inventory.pages.dev',
+  // 这里删掉 sitemap()
+  integrations: [], 
 });
