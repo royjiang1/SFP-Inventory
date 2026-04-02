@@ -46,7 +46,7 @@ const related = allProducts
 
     <div class="grid">
         <div class="gallery">
-            <img src={`/images/products/${data.pn}/1.jpg`} alt={data.model} />
+            <img src={`/images/products/${data.pn}.jpg`} alt={data.model} />
             <div class="thumb-grid">
                 {[1, 2, 3, 4].map(n => (
                     <img src={`/images/products/${data.pn}/${n}.jpg`} onerror="this.style.display='none'" />
@@ -79,7 +79,7 @@ const related = allProducts
     <div class="related-grid">
         {related.map(item => (
             <a href={`/products/${item.slug}`} class="card">
-                <img src={`/images/products/${item.data.pn}/1.jpg`} style="width:100%" />
+                <img src={`/images/products/${item.data.pn}.jpg`} style="width:100%" />
                 <p>{item.data.model}</p>
                 <p style="color:#d9534f">${item.data.price}</p>
             </a>
