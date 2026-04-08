@@ -15,108 +15,176 @@ export async function getStaticPaths() {
 const { entry, allProducts } = Astro.props;
 const { Content } = await entry.render();
 
-/** * 【自动化图片探测逻辑】
- * 这行代码会扫描 public/images/products 下的所有图片
- * 我们筛选出路径中包含当前品牌和当前 PN 的所有图片
- **/
+// 1. 动态获取图片逻辑
 const allImages = import.meta.glob('/public/images/products/**/*.{jpg,jpeg,png,webp}', { eager: true });
 const productImages = Object.keys(allImages)
   .filter(path => {
     const fileName = path.split('/').pop()?.toLowerCase() || '';
     const brandPath = `/${entry.data.brand.toLowerCase()}/`;
-    // 匹配规则：路径包含品牌名，且文件名以 PN 开头（例如 34060276.jpg 或 34060276 (2).jpg）
     return path.toLowerCase().includes(brandPath) && fileName.startsWith(entry.data.pn.toLowerCase());
   })
-  .map(path => path.replace('/public', '')) // 转换成浏览器可访问的路径
-  .sort(); // 排序确保主图（没有括号的）通常排在第一
+  .map(path => path.replace('/public', ''))
+  .sort();
 
-// 如果没搜到图，给一个保底图
 const displayImages = productImages.length > 0 ? productImages : ['https://placehold.co/600x600?text=No+Image'];
 
-// Related Modules 逻辑保持不变
+// 2. 动态 Related Modules 逻辑（自动寻找同品牌其他产品）
 const relatedItems = allProducts
   .filter(p => p.data.brand === entry.data.brand && p.data.pn !== entry.data.pn)
   .slice(0, 4);
+
+// 3. 价格处理逻辑（假设原价是售价的两倍，用于显示划线价）
+const currentPrice = parseFloat(entry.data.price);
+const originalPrice = (currentPrice * 2).toFixed(2);
 ---
 
 <Layout title={`${entry.data.pn} - H-COM`}>
-  <div class="max-w-7xl mx-auto px-4 py-8">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     
-    <nav class="flex mb-6 text-[11px] font-bold uppercase tracking-widest text-gray-400">
-      <a href="/" class="hover:text-h-blue">HOME</a>
-      <span class="mx-3">/</span>
-      <a href={`/products/${entry.data.brand.toLowerCase()}`} class="hover:text-h-blue">{entry.data.brand}</a>
-      <span class="mx-3 text-h-blue">/</span>
-      <span class="text-gray-900">{entry.data.pn}</span>
+    <nav class="flex mb-8 text-[11px] font-bold uppercase tracking-widest text-gray-400">
+        <a href="/" class="hover:text-h-blue">HOME</a>
+        <span class="mx-3">/</span>
+        <a href={`/products/${entry.data.brand.toLowerCase()}`} class="hover:text-h-blue">{entry.data.brand}</a>
+        <span class="mx-3 text-h-blue">/</span>
+        <span class="text-gray-900">{entry.data.pn}</span>
     </nav>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-      
-      <div class="lg:col-span-7 space-y-4">
-        <div class="relative overflow-hidden bg-gray-50 rounded-3xl border border-gray-100 group cursor-zoom-in">
-           <img 
-            id="mainDisplay"
-            src={displayImages[0]} 
-            alt={entry.data.pn}
-            class="w-full h-[500px] object-contain transition-transform duration-500 group-hover:scale-125"
-          />
-        </div>
-
-        {displayImages.length > 1 && (
-          <div class="flex gap-4 flex-wrap">
-            {displayImages.map((img) => (
-              <button 
-                onclick={`document.getElementById('mainDisplay').src='${img}'`}
-                class="w-20 h-20 border border-gray-200 hover:border-h-blue rounded-xl overflow-hidden transition-all focus:border-h-blue focus:border-2"
-              >
-                <img src={img} class="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div class="lg:col-span-5">
-        <h1 class="text-5xl font-black text-gray-900 tracking-tighter mb-2">{entry.data.pn}</h1>
-        <p class="text-xl text-gray-500 font-medium mb-6">{entry.data.model}</p>
         
-        <div class="text-3xl font-black text-red-600 mb-10">US$ {entry.data.price}</div>
-
-        <div class="grid grid-cols-2 gap-y-8 gap-x-4 border-y border-gray-100 py-10 mb-10">
-          <div>
-            <dt class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Speed</dt>
-            <dd class="text-lg font-bold text-gray-900">{entry.data.speed}</dd>
-          </div>
-          <div>
-            <dt class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Reach</dt>
-            <dd class="text-lg font-bold text-gray-900">{entry.data.reach}</dd>
-          </div>
+        <div class="lg:col-span-7 space-y-4">
+            <div class="relative overflow-hidden bg-gray-50 rounded-3xl border border-gray-100 group cursor-zoom-in">
+                <img 
+                    id="mainDisplay"
+                    src={displayImages[0]} 
+                    alt={entry.data.pn}
+                    class="w-full h-[550px] object-contain transition-transform duration-500 group-hover:scale-125"
+                />
+            </div>
+            {displayImages.length > 1 && (
+                <div class="flex gap-4 flex-wrap">
+                    {displayImages.map((img) => (
+                        <button 
+                            onclick={`document.getElementById('mainDisplay').src='${img}'`}
+                            class="w-20 h-20 border border-gray-200 hover:border-h-blue rounded-xl overflow-hidden transition-all focus:border-h-blue focus:border-2"
+                        >
+                            <img src={img} class="w-full h-full object-cover" />
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
 
-        <a href={`https://wa.me/8617722444464?text=Inquiry for ${entry.data.pn}`} class="w-full bg-h-blue text-white py-5 rounded-2xl font-black text-center block hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 uppercase tracking-widest">
-           INQUIRY VIA WHATSAPP
-        </a>
-      </div>
+        <div class="lg:col-span-5">
+            <div class="mb-4">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 uppercase tracking-widest border border-amber-100">
+                    {entry.data.condition || 'Tested - 100% Functional'}
+                </span>
+            </div>
+            <h1 class="text-4xl font-bold text-gray-900 mb-2 tracking-tight">
+                {entry.data.brand} {entry.data.model}
+            </h1>
+            <p class="text-xl text-h-blue font-semibold mb-6">P/N: {entry.data.pn}</p>
+
+            <div class="space-y-6 mb-10 pb-8 border-b border-gray-100">
+                <div class="text-h-subtle text-sm leading-relaxed">
+                    <Content /> </div>
+                
+                <div class="mt-4 flex items-baseline gap-3">
+                    <span class="text-3xl font-extrabold text-red-600">USD ${entry.data.price}</span>
+                    <span class="text-sm text-gray-400 line-through">${originalPrice}</span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-y-4 gap-x-8 text-[13px]">
+                    <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-h-subtle">Speed:</span><span class="font-bold">{entry.data.speed}</span></div>
+                    <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-h-subtle">Reach:</span><span class="font-bold">{entry.data.reach}</span></div>
+                    <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-h-subtle">Wavelength:</span><span class="font-bold">{entry.data.wavelength}</span></div>
+                    <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-h-subtle">Connector:</span><span class="font-bold">{entry.data.connector}</span></div>
+                </div>
+            </div>
+
+            <div class="mb-10">
+                <p class="text-[11px] font-bold text-h-subtle uppercase tracking-widest mb-4">Contact & Inquiry</p>
+                <div class="flex flex-row gap-3">
+                    <a href={`https://wa.me/8617722444464?text=Inquiry for ${entry.data.pn}`} target="_blank" class="flex-1 flex items-center justify-center py-4 bg-[#25D366] text-white rounded-xl hover:opacity-90 transition-opacity">
+                        <i class="fa-brands fa-whatsapp text-xl"></i>
+                    </a>
+                    <a href="mailto:info@zhaoyongoptics.com" class="flex-1 flex items-center justify-center py-4 bg-gray-900 text-white rounded-xl hover:opacity-90 transition-opacity">
+                        <i class="fa-regular fa-envelope text-xl"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-6 pt-4 border-t border-gray-200 flex flex-wrap items-center gap-3">
+                <span class="text-sm font-medium text-gray-600"><i class="fas fa-share-alt mr-1"></i> Share:</span>
+                <div class="flex gap-3">
+                    <a href="#" class="text-gray-400 hover:text-[#1877f2] text-xl transition-colors"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-black text-xl transition-colors"><i class="fab fa-x-twitter"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-[#26A5E4] text-xl transition-colors"><i class="fab fa-telegram"></i></a>
+                </div>
+            </div>
+        </div>
     </div>
 
-    {relatedItems.length > 0 && (
-      <div class="mt-32">
-        <h3 class="text-2xl font-black mb-10 tracking-tight italic uppercase border-b-2 border-black inline-block">Related Modules</h3>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {relatedItems.map(item => (
-            <a href={`/products/${item.data.brand.toLowerCase()}/${item.data.pn}`} class="group">
-               <div class="aspect-square bg-gray-50 rounded-2xl mb-4 overflow-hidden border border-gray-100">
-                  <img 
-                    src={`/images/products/${item.data.brand.toLowerCase()}/${item.data.pn}.jpg`} 
-                    class="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500" 
-                  />
-               </div>
-               <p class="text-[10px] font-bold text-h-blue uppercase">{item.data.brand}</p>
-               <h4 class="font-black text-gray-900 group-hover:text-h-blue transition-colors">{item.data.pn}</h4>
-            </a>
-          ))}
+    <section class="mt-24 border-t border-gray-100 pt-16">
+        <h2 class="text-[14px] font-bold text-h-blue text-center uppercase tracking-[0.3em] mb-16">Purchase Information</h2>
+        <div class="grid md:grid-cols-4 gap-12">
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 text-h-blue">
+                    <i class="fa-solid fa-gem text-xl"></i>
+                    <h4 class="font-bold text-[15px] text-h-black">Authenticity</h4>
+                </div>
+                <p class="text-xs text-h-subtle leading-relaxed font-medium">100% original modules sourced from reputable manufacturers.</p>
+            </div>
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 text-h-blue">
+                    <i class="fa-solid fa-magnifying-glass-chart text-xl"></i>
+                    <h4 class="font-bold text-[15px] text-h-black">Condition</h4>
+                </div>
+                <p class="text-xs text-h-subtle leading-relaxed font-medium">All hardware condition is explicitly stated in product details.</p>
+            </div>
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 text-h-blue">
+                    <i class="fa-solid fa-shield-halved text-xl"></i>
+                    <h4 class="font-bold text-[15px] text-h-black">Warranty</h4>
+                </div>
+                <ul class="text-xs text-h-subtle space-y-2 font-medium">
+                    <li>• New: 1-Year Warranty</li>
+                    <li>• Used: 3-Month Warranty</li>
+                </ul>
+            </div>
+            <div class="space-y-4">
+                <div class="flex items-center gap-3 text-h-blue">
+                    <i class="fa-solid fa-truck-fast text-xl"></i>
+                    <h4 class="font-bold text-[15px] text-h-black">Shipping</h4>
+                </div>
+                <p class="text-xs text-h-subtle leading-relaxed font-medium">Global express shipping via DHL/FedEx/UPS.</p>
+            </div>
         </div>
-      </div>
-    )}
-  </div>
+    </section>
+
+    <section class="mt-32">
+        <h2 class="text-[14px] font-bold text-h-blue text-center uppercase tracking-[0.3em] mb-16">Related {entry.data.brand} Modules</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {relatedItems.map(item => (
+                <div class="group bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-xl transition-all duration-500">
+                    <a href={`/products/${item.data.brand.toLowerCase()}/${item.data.pn}`}>
+                        <div class="aspect-square bg-h-gray rounded-xl mb-6 overflow-hidden flex items-center justify-center p-6">
+                            <img 
+                                src={`/images/products/${item.data.brand.toLowerCase()}/${item.data.pn}.jpg`} 
+                                alt={item.data.pn}
+                                class="w-full h-auto group-hover:scale-110 transition-transform duration-700"
+                                onerror="this.src='https://placehold.co/400x400?text=No+Image'"
+                            />
+                        </div>
+                        <span class="text-[10px] font-bold text-h-blue uppercase mb-2 block tracking-widest">{item.data.brand}</span>
+                        <h3 class="font-extrabold text-h-black mb-1 group-hover:text-h-blue transition-colors line-clamp-1">{item.data.pn}</h3>
+                        <p class="text-[11px] text-h-subtle font-medium mb-4 line-clamp-1">{item.data.model}</p>
+                        <div class="text-lg font-extrabold text-[#E53E3E] mb-6">US$ {item.data.price}</div>
+                        <div class="inline-flex items-center gap-2 text-[11px] font-bold text-h-black group-hover:gap-4 transition-all">VIEW MORE <i class="fa-solid fa-arrow-right"></i></div>
+                    </a>
+                </div>
+            ))}
+        </div>
+    </section>
+  </main>
 </Layout>
