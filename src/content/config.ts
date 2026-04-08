@@ -1,22 +1,22 @@
 import { defineCollection, z } from 'astro:content';
 
-const products = defineCollection({
-  type: 'content',
+// 定义产品集合的验证规则
+const productsCollection = defineCollection({
+  type: 'content', // 指明这是 Markdown 内容
   schema: z.object({
     brand: z.string(),
-    pn: z.string().or(z.number()),
+    pn: z.string(),
     model: z.string(),
-    price: z.string().or(z.number()),
-    // 以下是可选参数，防止某些 MD 缺少字段导致报错
-    speed: z.string().optional(),
-    reach: z.string().optional(),
-    wavelength: z.string().optional(),
-    connector: z.string().optional(), // 建议增加这一行
-    condition: z.string().default("Used - Tested"),
-    schemaJson: z.any().optional(),
+    price: z.string(),
+    speed: z.string(),
+    reach: z.string(),
+    wavelength: z.string(),
+    connector: z.string(),
+    condition: z.string(),
   }),
 });
 
+// 导出集合配置
 export const collections = {
-  'products': products,
+  'products': productsCollection,
 };
