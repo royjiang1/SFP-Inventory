@@ -1,12 +1,18 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 
+// 1. 路径生成逻辑
 export async function getStaticPaths() {
   const products = await getCollection('products');
   return products.map(entry => {
-    const [brand, slug] = entry.slug.split('/');
+    // 假设你的文件结构是 content/products/huawei/34060276.md
+    // slug 会自动包含 brand 文件夹名
+    const parts = entry.slug.split('/');
+    const brand = parts[0];
+    const slug = parts[1] || parts[0]; 
+    
     return {
-      params: { brand, slug },
+      params: { brand: brand.toLowerCase(), slug: slug },
       props: { entry },
     };
   });
@@ -14,76 +20,195 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { data } = entry;
-const allProducts = await getCollection('products');
+const { Content } = await render(entry);
 
-// 关联产品：找同品牌或同速率的，随机选4个
-const related = allProducts
-  .filter(p => p.slug !== entry.slug && (p.data.speed === data.speed || p.data.brand === data.brand))
-  .sort(() => 0.5 - Math.random())
-  .slice(0, 4);
+// 2. 核心：自动化图片获取逻辑 (1-5张)
+// 逻辑：扫描 public/images/products/[brand]/[pn].jpg 及其序列号图片
+const brandFolder = data.brand.toLowerCase();
+const pn = String(data.pn); // 确保转为字符串
+
+// 定义可能的图片后缀和序列
+const possibleImages = [
+  `/images/products/${brandFolder}/${pn}.jpg`,
+  `/images/products/${brandFolder}/${pn}-1.jpg`,
+  `/images/products/${brandFolder}/${pn}-2.jpg`,
+  `/images/products/${brandFolder}/${pn}-3.jpg`,
+  `/images/products/${brandFolder}/${pn}-4.jpg`,
+];
+
+// 注意：在 Astro 组件前端逻辑中，由于无法直接在客户端构建前检查 public 文件是否存在，
+// 我们在模板中通过简单的逻辑或 JS 处理，或者你可以根据习惯直接约定命名。
+// 这里我们假设你遵循 [pn].jpg 为主图的命名规则。
+const imagePaths = possibleImages.slice(0, 5); 
+
+// 3. 社交链接定义
+const whatsappNumber = "+8617722444464";
+const email = "info@zhaoyongoptics.com";
+const fbProfileId = "61556808129251";
+const currentUrl = Astro.url;
+
+const whatsappLink = `https://wa.me/${whatsappNumber.replace(/\s+/g, '')}?text=Inquiry%20about%20${data.brand}%20${data.pn}`;
 ---
 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{data.brand} {data.model} | Used & Tested</title>
-    <script type="application/ld+json" set:html={JSON.stringify(data.schemaJson)} />
-    <style>
-        body { font-family: sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-        .badge { background: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 4px; font-weight: bold; border: 1px solid #ffeeba; }
-        .price { color: #d9534f; font-size: 2rem; font-weight: bold; }
-        .specs { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
-        .gallery img { width: 100%; border-radius: 8px; border: 1px solid #eee; }
-        .thumb-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
-        .related-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-        .card { border: 1px solid #eee; padding: 10px; text-decoration: none; color: inherit; text-align: center; }
-        .btn-wa { display: inline-block; background: #25D366; color: white; padding: 12px 25px; border-radius: 5px; text-decoration: none; font-weight: bold; }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{data.brand} {data.pn} | {data.model} - H-COM Professional</title>
+    <meta name="description" content={`Buy original ${data.brand} ${data.pn} ${data.model}. ${data.speed} ${data.reach} optical transceiver. Tested and reliable.`}>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: { 'h-blue': '#1D4ED8', 'h-black': '#111827', 'h-subtle': '#6B7280', 'h-gray': '#F9FAFB' }
+                }
+            }
+        }
+    </script>
+
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org/",
+      "@type": "Product",
+      "name": `${data.brand} ${data.pn}`,
+      "image": `https://zhaoyongoptics.com${imagePaths[0]}`,
+      "description": `Original ${data.brand} ${data.model} module.`,
+      "sku": data.pn,
+      "brand": { "@type": "Brand", "name": data.brand },
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": "USD",
+        "price": data.price,
+        "itemCondition": "https://schema.org/UsedCondition",
+        "availability": "https://schema.org/InStock"
+      }
+    })} />
+
+    <style is:global>
+        body { font-family: 'Poppins', sans-serif; }
+        .product-description p { margin-bottom: 1rem; font-size: 0.875rem; color: #6B7280; line-height: 1.6; }
+        .product-description strong { color: #111827; }
+        .nav-link::after { content: ''; position: absolute; width: 0; height: 2px; bottom: -4px; left: 0; background-color: #1D4ED8; transition: width 0.3s ease; }
+        .nav-link:hover::after { width: 100%; }
     </style>
 </head>
-<body>
-    <nav style="margin-bottom: 20px;"> <a href="/">Home</a> / {data.brand} / {data.model} </nav>
 
-    <div class="grid">
-        <div class="gallery">
-            <img src={`/images/products/${data.pn}.jpg`} alt={data.model} />
-            <div class="thumb-grid">
-                {[1, 2, 3, 4].map(n => (
-                    <img src={`/images/products/${data.pn}/${n}.jpg`} onerror="this.style.display='none'" />
-                ))}
+<body class="bg-white text-h-black antialiased">
+
+    <header class="border-b border-gray-100 py-4 sticky top-0 bg-white/80 backdrop-blur-md z-50">
+        <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
+            <a href="/" class="text-2xl font-black text-h-blue tracking-tighter">H-COM</a>
+            <div class="hidden md:flex gap-8 text-[12px] font-bold text-h-subtle uppercase">
+                <a href="/" class="nav-link relative hover:text-h-blue">Home</a>
+                <a href={`/brand/${brandFolder}`} class="nav-link relative text-h-blue after:w-full">{data.brand}</a>
+                <a href="/about" class="nav-link relative hover:text-h-blue">About</a>
             </div>
         </div>
+    </header>
 
-        <div>
-            <h1>{data.brand} {data.model}</h1>
-            <p><span class="badge">Condition: {data.condition}</span></p>
-            <p class="price">${data.price}</p>
-            
-            <div class="specs">
-                <h3>Technical Specifications</h3>
-                <ul>
-                    <li><strong>P/N:</strong> {data.pn}</li>
-                    <li><strong>Speed:</strong> {data.speed}</li>
-                    <li><strong>Reach:</strong> {data.reach}</li>
-                    <li><strong>Wavelength:</strong> {data.wavelength}</li>
-                </ul>
+    <main class="max-w-7xl mx-auto px-4 py-10">
+        PN -->
+        <nav class="flex mb-10 text-[10px] font-bold text-h-subtle uppercase tracking-[0.2em]">
+            <ol class="flex items-center space-x-2">
+                <li><a href="/" class="hover:text-h-black transition">Home</a></li>
+                <li class="text-gray-300">/</li>
+                <li><a href={`/brand/${brandFolder}`} class="hover:text-h-black transition">{data.brand}</a></li>
+                <li class="text-gray-300">/</li>
+                <li class="text-h-black">{data.pn}</li>
+            </ol>
+        </nav>
+
+        <div class="lg:grid lg:grid-cols-12 lg:gap-x-16">
+            <div class="lg:col-span-7">
+                <div class="bg-h-gray rounded-3xl overflow-hidden mb-6 group cursor-zoom-in border border-gray-50">
+                    <img id="main-image" src={imagePaths[0]} alt={data.model} class="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110" />
+                </div>
+                <div class="grid grid-cols-5 gap-4">
+                    {imagePaths.map((img, index) => (
+                        <button onclick={`document.getElementById('main-image').src='${img}'`} class="rounded-xl overflow-hidden border-2 border-transparent hover:border-h-blue focus:border-h-blue transition-all bg-h-gray shadow-sm">
+                            <img src={img} class="w-full h-auto" onerror="this.parentElement.style.display='none'" />
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            <a href={`https://wa.me/你的电话?text=Inquiry:${data.brand}-${data.pn}`} class="btn-wa">WhatsApp For Bulk Price</a>
+            <div class="lg:col-span-5 mt-10 lg:mt-0">
+                <div class="mb-4">
+                    <span class="inline-block px-3 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-full border border-amber-100 uppercase tracking-widest">
+                        {data.condition}
+                    </span>
+                </div>
+
+                <h1 class="text-4xl font-bold text-h-black mb-2 tracking-tight">{data.brand} {data.model}</h1>
+                <p class="text-xl text-h-blue font-bold mb-6 italic">Part Number: {data.pn}</p>
+
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    {['Speed', 'Reach', 'Wavelength', 'Connector'].map(key => (
+                        <div class="bg-h-gray p-4 rounded-2xl border border-gray-50">
+                            <p class="text-[10px] font-bold text-h-subtle uppercase tracking-widest mb-1">{key}</p>
+                            <p class="text-sm font-bold text-h-black">{data[key.toLowerCase()] || '--'}</p>
+                        </div>
+                    ))}
+                </div>
+
+                <div class="product-description mb-10 border-t border-gray-100 pt-8">
+                    <div class="text-[11px] font-bold text-h-black uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                        <span class="w-6 h-[2px] bg-h-blue"></span> Description
+                    </div>
+                    <Content />
+                </div>
+
+                <div class="mb-10">
+                    <div class="flex items-baseline gap-2 mb-6">
+                        <span class="text-3xl font-black text-red-600">${data.price}</span>
+                        <span class="text-h-subtle text-xs">/ unit</span>
+                    </div>
+
+                    <div class="flex gap-3 mb-6">
+                        <a href={whatsappLink} target="_blank" class="flex-1 bg-[#25D366] text-white py-4 rounded-2xl flex flex-col items-center justify-center hover:shadow-xl hover:-translate-y-1 transition-all">
+                            <i class="fa-brands fa-whatsapp text-2xl mb-1"></i>
+                            <span class="text-[10px] font-bold uppercase">WhatsApp</span>
+                        </a>
+                        <a href={`https://m.me/${fbProfileId}`} target="_blank" class="flex-1 bg-[#0084FF] text-white py-4 rounded-2xl flex flex-col items-center justify-center hover:shadow-xl hover:-translate-y-1 transition-all">
+                            <i class="fa-brands fa-facebook-messenger text-2xl mb-1"></i>
+                            <span class="text-[10px] font-bold uppercase">Messenger</span>
+                        </a>
+                        <a href={`mailto:${email}`} class="flex-1 bg-h-black text-white py-4 rounded-2xl flex flex-col items-center justify-center hover:shadow-xl hover:-translate-y-1 transition-all">
+                            <i class="fa-regular fa-envelope text-2xl mb-1"></i>
+                            <span class="text-[10px] font-bold uppercase">Email</span>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-gray-100 flex items-center gap-4">
+                    <span class="text-[11px] font-bold text-h-subtle uppercase">Share:</span>
+                    <div class="flex gap-4 text-h-subtle">
+                        <a href={`https://www.facebook.com/sharer/sharer.php?u=${currentUrl}`} class="hover:text-h-blue transition-colors"><i class="fa-brands fa-facebook"></i></a>
+                        <a href={`https://twitter.com/intent/tweet?url=${currentUrl}`} class="hover:text-h-black transition-colors"><i class="fa-brands fa-x-twitter"></i></a>
+                        <a href={`https://t.me/share/url?url=${currentUrl}`} class="hover:text-[#26A5E4] transition-colors"><i class="fa-brands fa-telegram"></i></a>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </main>
 
-    <hr style="margin: 50px 0; border: 0; border-top: 1px solid #eee;" />
+    <footer class="bg-h-black text-gray-500 py-16 mt-20">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-[11px] tracking-[0.3em] uppercase text-white mb-4">Hunan Zhaoyong Communication Technology Co., Ltd.</p>
+            <p class="text-xs mb-8">Professional Network Solutions | SFP Specialist</p>
+            <div class="flex justify-center gap-6 text-sm">
+                <a href={fbProfileId} class="hover:text-white transition">Facebook</a>
+                <a href={`mailto:${email}`} class="hover:text-white transition">Contact Us</a>
+                <a href="/terms" class="hover:text-white transition">Privacy Policy</a>
+            </div>
+        </div>
+    </footer>
 
-    <h3>Related Products</h3>
-    <div class="related-grid">
-        {related.map(item => (
-            <a href={`/products/${item.slug}`} class="card">
-                <img src={`/images/products/${item.data.pn}.jpg`} style="width:100%" />
-                <p>{item.data.model}</p>
-                <p style="color:#d9534f">${item.data.price}</p>
-            </a>
-        ))}
-    </div>
 </body>
 </html>
