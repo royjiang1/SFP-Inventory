@@ -4,14 +4,10 @@ import { getCollection, render } from 'astro:content';
 export async function getStaticPaths() {
   const products = await getCollection('products');
   return products.map(entry => {
-    // 假设 slug 格式为 "brand/filename"
     const [brand, ...slugParts] = entry.slug.split('/');
     const slug = slugParts.join('/') || brand;
     return {
-      params: { 
-        brand: brand.toLowerCase(), 
-        slug: slug 
-      },
+      params: { brand: brand.toLowerCase(), slug },
       props: { entry },
     };
   });
@@ -21,15 +17,9 @@ const { entry } = Astro.props;
 const { data } = entry;
 const { Content } = await render(entry);
 
-/**
- * 路径逻辑修复：
- * 既然你 GitHub 上的文件夹已改为小写 'huawei'
- * 我们这里使用 .toLowerCase() 确保路径匹配
- */
 const brandFolder = data.brand.toLowerCase();
 const imagePath = `/images/products/${brandFolder}/${data.pn}.jpg`;
-
-const whatsappNumber = "8617722444464";
+const whatsappNumber = '8617722444464';
 const whatsappLink = `https://wa.me/${whatsappNumber}?text=Inquiry%20about%20${data.brand}%20${data.pn}`;
 const currentYear = new Date().getFullYear();
 ---
@@ -37,104 +27,140 @@ const currentYear = new Date().getFullYear();
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{data.brand} {data.model} - H-COM</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{data.brand} {data.model} - H-COM</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* 全局字体 */
+    body { font-family: 'Poppins', sans-serif; }
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        /* 强制应用 Poppins 字体并优化排版 */
-        body { font-family: 'Poppins', sans-serif; }
-        .prose p { margin-bottom: 1.25em; color: #4b5563; line-height: 1.8; }
-        .prose strong { color: #111827; font-weight: 600; }
-    </style>
+    /* 描述区域的自定义样式（替代缺失的 prose 类） */
+    .product-description p {
+      margin-bottom: 1.25rem;
+      color: #4b5563;
+      line-height: 1.75;
+      font-size: 0.95rem;
+    }
+    .product-description strong {
+      color: #111827;
+      font-weight: 600;
+    }
+    .product-description a {
+      color: #2563eb;
+      text-decoration: underline;
+    }
+    .product-description ul, .product-description ol {
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+    }
+    .product-description li {
+      margin: 0.25rem 0;
+    }
+  </style>
 </head>
-
 <body class="bg-gray-50 text-gray-900 flex flex-col min-h-screen antialiased">
-    <nav class="bg-white border-b sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="/" class="text-2xl font-bold text-blue-600 tracking-tighter">H-COM</a>
-            <div class="text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em]">
-                <a href="/" class="hover:text-blue-600">Home</a> / <span class="text-blue-600">{data.brand}</span>
-            </div>
+  <nav class="bg-white border-b sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+      <a href="/" class="text-2xl font-bold text-blue-600 tracking-tighter">H-COM</a>
+      <div class="text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+        <a href="/" class="hover:text-blue-600">Home</a> / <span class="text-blue-600">{data.brand}</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="flex-grow max-w-6xl mx-auto px-6 py-12 md:py-20">
+    <div class="grid md:grid-cols-12 gap-16">
+      
+      <!-- 左侧图片区域 -->
+      <div class="md:col-span-5">
+        <div class="bg-white p-4 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/40">
+          <img 
+            src={imagePath} 
+            alt={data.model} 
+            class="w-full h-auto rounded-[2rem]"
+            onerror="this.src='https://placehold.co/800x600?text=No+Image&font=poppins'"
+          />
         </div>
-    </nav>
+      </div>
 
-    <main class="flex-grow max-w-6xl mx-auto px-6 py-12 md:py-20">
-        <div class="grid md:grid-cols-12 gap-16">
-            
-            <div class="md:col-span-5">
-                <div class="bg-white p-4 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/40">
-                    <img 
-                        src={imagePath} 
-                        alt={data.model} 
-                        class="w-full h-auto rounded-[2rem]"
-                        onerror="this.src='https://placehold.co/800x600?text=Image+Not+Found'"
-                    />
-                </div>
-            </div>
-
-            <div class="md:col-span-7">
-                <div class="mb-6">
-                    <span class="px-4 py-1.5 bg-amber-50 text-amber-600 text-[10px] font-black rounded-full border border-amber-100 uppercase tracking-wider">
-                        {data.condition || "Used - Tested"}
-                    </span>
-                </div>
-
-                <h1 class="text-4xl md:text-5xl font-bold text-gray-900 leading-[1.1] tracking-tight">
-                    {data.brand} <br/>
-                    <span class="text-blue-600">{data.model}</span>
-                </h1>
-                
-                <p class="text-sm font-bold text-gray-400 mt-6 uppercase tracking-[0.15em]">
-                    Part Number: <span class="text-gray-900 font-mono">{data.pn}</span>
-                </p>
-                
-                <div class="mt-8 flex items-baseline gap-2">
-                    <span class="text-5xl font-black text-red-600">${data.price}</span>
-                    <span class="text-gray-400 font-medium italic">/ unit</span>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 mt-10">
-                    {[
-                        { label: 'Speed', val: data.speed },
-                        { label: 'Reach', val: data.reach },
-                        { label: 'Wavelength', val: data.wavelength },
-                        { label: 'Connector', val: data.connector }
-                    ].map(item => (
-                        <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
-                            <p class="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-1">{item.label}</p>
-                            <p class="text-base font-bold text-gray-800">{item.val || '--'}</p>
-                        </div>
-                    ))}
-                </div>
-
-                <div class="mt-12 pt-10 border-t border-gray-100">
-                    <h3 class="text-xs font-black uppercase tracking-[0.25em] text-gray-900 mb-6 flex items-center gap-3">
-                        <span class="w-8 h-px bg-blue-600"></span> Description
-                    </h3>
-                    <div class="prose max-w-none">
-                        <Content />
-                    </div>
-                </div>
-
-                <div class="mt-12">
-                    <a href={whatsappLink} target="_blank" class="flex items-center justify-center gap-3 w-full bg-[#25D366] text-white py-5 rounded-2xl font-bold text-lg hover:bg-[#20bd5a] transition-all shadow-xl shadow-green-100">
-                        Inquiry via WhatsApp
-                    </a>
-                </div>
-            </div>
+      <!-- 右侧信息区域 -->
+      <div class="md:col-span-7">
+        <!-- 状态标签 -->
+        <div class="mb-6">
+          <span class="px-4 py-1.5 bg-amber-50 text-amber-600 text-[10px] font-black rounded-full border border-amber-100 uppercase tracking-wider">
+            {data.condition || 'Used - Tested'}
+          </span>
         </div>
-    </main>
 
-    <footer class="bg-white border-t py-12 px-6">
-        <div class="max-w-6xl mx-auto text-center">
-            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em]">
-                &copy; {currentYear} H-COM TECHNOLOGY. ALL RIGHTS RESERVED.
-            </p>
+        <!-- 标题 -->
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-900 leading-[1.1] tracking-tight">
+          {data.brand} <br/>
+          <span class="text-blue-600">{data.model}</span>
+        </h1>
+        
+        <!-- 料号 -->
+        <p class="text-sm font-bold text-gray-400 mt-6 uppercase tracking-[0.15em]">
+          Part Number: <span class="text-gray-900 font-mono">{data.pn}</span>
+        </p>
+        
+        <!-- 价格 -->
+        <div class="mt-8 flex items-baseline gap-2">
+          <span class="text-5xl font-black text-red-600">${data.price}</span>
+          <span class="text-gray-400 font-medium italic">/ unit</span>
         </div>
-    </footer>
+
+        <!-- 规格网格 -->
+        <div class="grid grid-cols-2 gap-4 mt-10">
+          <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+            <p class="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-1">Speed</p>
+            <p class="text-base font-bold text-gray-800">{data.speed || '--'}</p>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+            <p class="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-1">Reach</p>
+            <p class="text-base font-bold text-gray-800">{data.reach || '--'}</p>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+            <p class="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-1">Wavelength</p>
+            <p class="text-base font-bold text-gray-800">{data.wavelength || '--'}</p>
+          </div>
+          <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm">
+            <p class="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-1">Connector</p>
+            <p class="text-base font-bold text-gray-800">{data.connector || '--'}</p>
+          </div>
+        </div>
+
+        <!-- 描述区域（已修复样式） -->
+        <div class="mt-12 pt-10 border-t border-gray-100">
+          <h3 class="text-xs font-black uppercase tracking-[0.25em] text-gray-900 mb-6 flex items-center gap-3">
+            <span class="w-8 h-px bg-blue-600"></span> Description
+          </h3>
+          <div class="product-description">
+            <Content />
+          </div>
+        </div>
+
+        <!-- WhatsApp 询价按钮 -->
+        <div class="mt-12">
+          <a 
+            href={whatsappLink} 
+            target="_blank" 
+            class="flex items-center justify-center gap-3 w-full bg-[#25D366] text-white py-5 rounded-2xl font-bold text-lg hover:bg-[#20bd5a] transition-all shadow-xl shadow-green-100"
+          >
+            Inquiry via WhatsApp
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-white border-t py-12 px-6">
+    <div class="max-w-6xl mx-auto text-center">
+      <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em]">
+        &copy; {currentYear} H-COM TECHNOLOGY. ALL RIGHTS RESERVED.
+      </p>
+    </div>
+  </footer>
 </body>
 </html>
