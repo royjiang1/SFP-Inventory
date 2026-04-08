@@ -1,9 +1,9 @@
 import { defineConfig } from 'astro/config';
-// 暂时把下面这行 sitemap 删掉或注释掉
-// import sitemap from '@astrojs/sitemap'; 
+import tailwind from '@astrojs/tailwind';
 
 export default defineConfig({
-  site: 'https://sfp-inventory.pages.dev',
-  // 这里删掉 sitemap()
-  integrations: [], 
+  // 核心：集成 Tailwind
+  integrations: [tailwind()],
+  // 针对 Cloudflare 部署的优化
+  output: 'static',
 });
