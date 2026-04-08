@@ -2,7 +2,10 @@
 // 接收页面标题
 const { title } = Astro.props;
 
-// 定义导航链接数据（方便管理）
+// 获取当前页面的路径，用于导航条高亮判断
+const currentPath = Astro.url.pathname.toLowerCase();
+
+// 定义主导航链接
 const navLinks = [
   { name: 'HOME', url: '/' },
   { name: 'CISCO', url: '/products/cisco' },
@@ -14,7 +17,11 @@ const navLinks = [
   { name: 'JUNIPER', url: '/products/juniper' },
 ];
 
-const brands = ['Acacia', 'Arista', 'Avago', 'Avaya', 'Ciena', 'Dell', 'Ericsson', 'Extreme Networks', 'F5', 'Fortinet', 'H3C', 'Hisense', 'Inno Light', 'Intel', 'JDSU', 'Mellanox', 'Raisecom', 'Solarflare', 'Source', 'ZTE', 'Others'];
+const brands = [
+  'Acacia', 'Arista', 'Avago', 'Avaya', 'Ciena', 'Dell', 'Ericsson', 
+  'Extreme Networks', 'F5', 'Fortinet', 'H3C', 'Hisense', 'Inno Light', 
+  'Intel', 'JDSU', 'Mellanox', 'Raisecom', 'Solarflare', 'Source', 'ZTE', 'Others'
+];
 ---
 
 <!DOCTYPE html>
@@ -22,33 +29,87 @@ const brands = ['Acacia', 'Arista', 'Avago', 'Avaya', 'Ciena', 'Dell', 'Ericsson
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{title}</title>
+    <title>{title} | H-COM</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script is:inline src="https://cdn.tailwindcss.com"></script>
+    <script is:inline>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                    },
+                    colors: {
+                        'h-blue': '#1D4ED8',   
+                        'h-gray': '#F3F4F6',   
+                        'h-black': '#111827',  
+                        'h-subtle': '#6B7280', 
+                    }
+                }
+            }
+        }
+    </script>
+
     <style is:global>
-        body { font-family: 'Poppins', sans-serif; }
-        /* 导航线动画 */
-        .nav-link { position: relative; transition: color 0.3s ease; }
+        body { font-family: 'Poppins', sans-serif; background-color: white; color: #111827; }
+        
+        /* 导航线动画效果 */
+        .nav-link {
+            position: relative;
+            transition: color 0.3s ease;
+        }
         .nav-link::after {
-            content: ''; position: absolute; width: 0; height: 2px;
-            bottom: -4px; left: 0; background-color: #1D4ED8;
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #1D4ED8;
             transition: width 0.3s ease;
         }
-        .nav-link:hover::after { width: 100%; }
-        
-        /* 下拉菜单链接 */
+        /* 当链接 active 或者 hover 时显示下划线 */
+        .nav-link:hover::after, .nav-link.active::after {
+            width: 100%;
+        }
+
+        /* 下拉菜单链接样式 */
         .dropdown-brand-link {
-            position: relative; transition: color 0.3s ease;
-            font-size: 14px; font-weight: 600; color: #6B7280;
-            text-transform: uppercase; letter-spacing: 0.025em;
+            position: relative;
+            transition: color 0.3s ease;
+            font-size: 14px;
+            font-weight: 600;
+            color: #6B7280;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            white-space: nowrap;
+        }
+        .dropdown-brand-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 0;
+            background-color: #1D4ED8;
+            transition: width 0.3s ease;
         }
         .dropdown-brand-link:hover { color: #1D4ED8; }
-        .dropdown-brand-link::after {
-            content: ''; position: absolute; width: 0; height: 2px;
-            bottom: -4px; left: 0; background-color: #1D4ED8;
-            transition: width 0.3s ease;
-        }
         .dropdown-brand-link:hover::after { width: 100%; }
+
+        /* 图片缩放容器 */
+        .zoom-container {
+            overflow: hidden;
+            border-radius: 0.75rem;
+            background-color: #F3F4F6;
+            cursor: zoom-in;
+        }
+        .zoom-container img {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .zoom-container:hover img { transform: scale(1.08); }
     </style>
 </head>
 <body class="antialiased">
@@ -58,13 +119,22 @@ const brands = ['Acacia', 'Arista', 'Avago', 'Avaya', 'Ciena', 'Dell', 'Ericsson
             <div class="flex items-center gap-10">
                 <a href="/" class="text-3xl font-extrabold text-h-blue tracking-tighter">H-COM</a>
                 
-                <div class="hidden lg:flex items-center gap-9 text-[14px] font-semibold text-h-subtle uppercase tracking-tight">
-                    {navLinks.map(link => (
-                        <a href={link.url} class="nav-link hover:text-h-blue">{link.name}</a>
-                    ))}
+                <div class="hidden lg:flex items-center gap-9 text-[14px] font-semibold uppercase tracking-tight">
+                    {navLinks.map(link => {
+                        // 智能识别逻辑：如果当前路径包含品牌名，则添加 active 类名
+                        const isActive = link.name !== 'HOME' && currentPath.includes(link.name.toLowerCase());
+                        return (
+                            <a 
+                                href={link.url} 
+                                class={`nav-link hover:text-h-blue transition-colors ${isActive ? 'active text-h-blue' : 'text-h-subtle'}`}
+                            >
+                                {link.name}
+                            </a>
+                        );
+                    })}
 
                     <div class="relative group h-full py-2">
-                        <button class="nav-link flex items-center gap-1 hover:text-h-blue group-hover:text-h-blue">
+                        <button class="nav-link text-h-subtle flex items-center gap-1 hover:text-h-blue group-hover:text-h-blue">
                             MORE <i class="fa-solid fa-chevron-down text-[10px] transition-transform group-hover:rotate-180"></i>
                         </button>
                         <div class="absolute left-0 mt-2 w-[520px] bg-white border border-gray-100 shadow-xl rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
@@ -86,6 +156,7 @@ const brands = ['Acacia', 'Arista', 'Avago', 'Avaya', 'Ciena', 'Dell', 'Ericsson
             </div>
         </nav>
     </header>
+
     <slot />
 
     <footer class="bg-h-black text-gray-400 mt-32 pt-20 pb-10">
@@ -93,13 +164,40 @@ const brands = ['Acacia', 'Arista', 'Avago', 'Avaya', 'Ciena', 'Dell', 'Ericsson
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                 <div>
                     <span class="text-3xl font-extrabold text-white tracking-tighter mb-6 block">H-COM</span>
-                    <p class="text-[13px] leading-relaxed">Global distributor of professional network components.</p>
+                    <p class="text-[13px] leading-relaxed">
+                        Global distributor of professional network components. Specializing in SFP, Switches, and optical transceivers.
+                    </p>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase text-[11px] tracking-widest">Quick Links</h4>
+                    <ul class="space-y-4 text-[13px] font-medium">
+                        <li><a href="/" class="hover:text-white transition">Home</a></li>
+                        <li><a href="#" class="hover:text-white transition">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition">Terms of Service</a></li>
+                        <li><a href="#" class="hover:text-white transition">Support</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase text-[11px] tracking-widest">Brands</h4>
+                    <ul class="space-y-4 text-[13px] font-medium">
+                        <li><a href="/products/huawei" class="hover:text-white transition">Huawei</a></li>
+                        <li><a href="/products/cisco" class="hover:text-white transition">Cisco</a></li>
+                        <li><a href="/products/juniper" class="hover:text-white transition">Juniper</a></li>
+                        <li><a href="/products/nokia" class="hover:text-white transition">Nokia</a></li>
+                    </ul>
                 </div>
                 <div>
                     <h4 class="text-white font-bold mb-6 uppercase text-[11px] tracking-widest">Connect</h4>
                     <p class="text-[13px] mb-2 font-semibold text-white">Hunan Zhaoyong Communication Tech Co., Ltd.</p>
                     <p class="text-sm mt-2"><i class="fab fa-whatsapp mr-2"></i> +86 177 2244 4464</p>
                     <p class="text-[13px] mb-4"><i class="fa-solid fa-envelope mr-2"></i> info@zhaoyongoptics.com</p>
+                    
+                    <div class="flex gap-4">
+                        <a href="https://www.facebook.com/profile.php?id=61556808129251" target="_blank" class="hover:text-h-blue transition-colors"><i class="fa-brands fa-facebook-f text-lg"></i></a>
+                        <a href="#" class="hover:text-white transition-colors"><i class="fa-brands fa-x-twitter text-lg"></i></a>
+                        <a href="#" class="hover:text-[#26A5E4] transition-colors"><i class="fa-brands fa-telegram text-lg"></i></a>
+                        <a href="#" class="hover:text-[#0a66c2] transition-colors"><i class="fa-brands fa-linkedin-in text-lg"></i></a>
+                    </div>
                 </div>
             </div>
             <div class="pt-10 border-t border-gray-800 text-center text-[11px] font-medium uppercase tracking-widest">
@@ -107,5 +205,5 @@ const brands = ['Acacia', 'Arista', 'Avago', 'Avaya', 'Ciena', 'Dell', 'Ericsson
             </div>
         </div>
     </footer>
-    </body>
+</body>
 </html>
