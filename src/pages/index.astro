@@ -1,29 +1,54 @@
 ---
 import { getCollection } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+
+// 获取所有产品数据
 const allProducts = await getCollection('products');
 ---
 
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>SFP Inventory - Professional Fiber Modules</title>
-    <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 50px auto; text-align: center; }
-        .product-link { display: block; margin: 10px; padding: 15px; border: 1px solid #eee; text-decoration: none; color: #333; border-radius: 8px; }
-        .product-link:hover { background: #f9f9f9; border-color: #007bff; }
-    </style>
-</head>
-<body>
-    <h1>Welcome to SFP Inventory</h1>
-    <p>We provide high-quality, tested fiber optic modules.</p>
-    <hr />
-    <h2>Our Products</h2>
-    <div style="margin-top: 20px;">
-        {allProducts.map(product => (
-            <a href={`/products/${product.slug}`} class="product-link">
-                <strong>{product.data.brand}</strong> - {product.data.model} ({product.data.pn})
-            </a>
-        ))}
+<Layout title="H-COM | Professional SFP & Optical Transceivers Inventory">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="text-center mb-20">
+      <h1 class="text-5xl font-extrabold text-h-black tracking-tighter mb-4">
+        SFP <span class="text-h-blue">INVENTORY</span>
+      </h1>
+      <p class="text-h-subtle max-w-2xl mx-auto">
+        Global distributor of professional network components. Original modules, fully tested with 1-year warranty.
+      </p>
     </div>
-</body>
-</html>
+
+    <section>
+      <div class="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
+        <h2 class="text-xl font-bold text-h-black">Latest Stock</h2>
+        <span class="text-sm text-h-subtle font-medium">{allProducts.length} Products Available</span>
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+        {allProducts.map(product => (
+          <div class="group bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-xl transition-all duration-500">
+            <a href={`/products/${product.data.brand.toLowerCase()}/${product.data.pn}`}>
+              <div class="aspect-square bg-h-gray rounded-xl mb-6 overflow-hidden flex items-center justify-center p-6">
+                <img 
+                  src={`/images/products/${product.data.brand.toLowerCase()}/${product.data.pn}.jpg`} 
+                  alt={product.data.model}
+                  class="w-full h-auto group-hover:scale-110 transition-transform duration-700"
+                  onerror="this.src='https://placehold.co/400x400/f3f4f6/111827?text=No+Image'"
+                />
+              </div>
+              <span class="text-[10px] font-bold text-h-blue uppercase mb-2 block tracking-widest">{product.data.brand}</span>
+              <h3 class="font-extrabold text-h-black mb-1 group-hover:text-h-blue transition-colors line-clamp-1">{product.data.pn}</h3>
+              <p class="text-[11px] text-h-subtle font-medium mb-4 line-clamp-1">{product.data.model}</p>
+              
+              <div class="flex items-center justify-between mt-auto">
+                <div class="text-lg font-extrabold text-red-600">US$ {product.data.price}</div>
+                <div class="inline-flex items-center gap-2 text-[10px] font-bold text-h-black">
+                  DETAILS <i class="fa-solid fa-arrow-right text-[8px]"></i>
+                </div>
+              </div>
+            </a>
+          </div>
+        ))}
+      </div>
+    </section>
+  </main>
+</Layout>
