@@ -8,18 +8,32 @@ export async function getStaticPaths() {
   const allProducts = await getCollection('products');
   return allProducts.map(entry => ({
     params: { brand: entry.data.brand.toLowerCase(), pn: entry.data.pn },
-    props: { entry, allProducts }, // 传递所有产品用于 Related Modules
+    props: { entry, allProducts },
   }));
 }
 
 const { entry, allProducts } = Astro.props;
 const { Content } = await entry.render();
 
-// 模拟多图逻辑：主图 + 备份图
-const mainImg = `/images/products/${entry.data.brand.toLowerCase()}/${entry.data.pn}.jpg`;
-const secondImg = `/images/products/${entry.data.brand.toLowerCase()}/${entry.data.pn} (2).jpg`;
+/** * 【自动化图片探测逻辑】
+ * 这行代码会扫描 public/images/products 下的所有图片
+ * 我们筛选出路径中包含当前品牌和当前 PN 的所有图片
+ **/
+const allImages = import.meta.glob('/public/images/products/**/*.{jpg,jpeg,png,webp}', { eager: true });
+const productImages = Object.keys(allImages)
+  .filter(path => {
+    const fileName = path.split('/').pop()?.toLowerCase() || '';
+    const brandPath = `/${entry.data.brand.toLowerCase()}/`;
+    // 匹配规则：路径包含品牌名，且文件名以 PN 开头（例如 34060276.jpg 或 34060276 (2).jpg）
+    return path.toLowerCase().includes(brandPath) && fileName.startsWith(entry.data.pn.toLowerCase());
+  })
+  .map(path => path.replace('/public', '')) // 转换成浏览器可访问的路径
+  .sort(); // 排序确保主图（没有括号的）通常排在第一
 
-// Related Modules: 筛选同品牌的产品（排除当前这个）
+// 如果没搜到图，给一个保底图
+const displayImages = productImages.length > 0 ? productImages : ['https://placehold.co/600x600?text=No+Image'];
+
+// Related Modules 逻辑保持不变
 const relatedItems = allProducts
   .filter(p => p.data.brand === entry.data.brand && p.data.pn !== entry.data.pn)
   .slice(0, 4);
@@ -28,7 +42,7 @@ const relatedItems = allProducts
 <Layout title={`${entry.data.pn} - H-COM`}>
   <div class="max-w-7xl mx-auto px-4 py-8">
     
-    <nav class="flex mb-8 text-[11px] font-bold uppercase tracking-widest text-gray-400">
+    <nav class="flex mb-6 text-[11px] font-bold uppercase tracking-widest text-gray-400">
       <a href="/" class="hover:text-h-blue">HOME</a>
       <span class="mx-3">/</span>
       <a href={`/products/${entry.data.brand.toLowerCase()}`} class="hover:text-h-blue">{entry.data.brand}</a>
@@ -42,29 +56,31 @@ const relatedItems = allProducts
         <div class="relative overflow-hidden bg-gray-50 rounded-3xl border border-gray-100 group cursor-zoom-in">
            <img 
             id="mainDisplay"
-            src={mainImg} 
+            src={displayImages[0]} 
             alt={entry.data.pn}
-            class="w-full h-auto transition-transform duration-500 group-hover:scale-125"
+            class="w-full h-[500px] object-contain transition-transform duration-500 group-hover:scale-125"
           />
         </div>
-        <div class="flex gap-4">
-            <button onclick={`document.getElementById('mainDisplay').src='${mainImg}'`} class="w-20 h-20 border-2 border-h-blue rounded-lg overflow-hidden">
-                <img src={mainImg} class="w-full h-full object-cover" />
-            </button>
-            <button onclick={`document.getElementById('mainDisplay').src='${secondImg}'`} class="w-20 h-20 border border-gray-200 hover:border-h-blue rounded-lg overflow-hidden">
-                <img src={secondImg} class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'" />
-            </button>
-        </div>
+
+        {displayImages.length > 1 && (
+          <div class="flex gap-4 flex-wrap">
+            {displayImages.map((img) => (
+              <button 
+                onclick={`document.getElementById('mainDisplay').src='${img}'`}
+                class="w-20 h-20 border border-gray-200 hover:border-h-blue rounded-xl overflow-hidden transition-all focus:border-h-blue focus:border-2"
+              >
+                <img src={img} class="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div class="lg:col-span-5">
         <h1 class="text-5xl font-black text-gray-900 tracking-tighter mb-2">{entry.data.pn}</h1>
         <p class="text-xl text-gray-500 font-medium mb-6">{entry.data.model}</p>
         
-        <div class="flex items-baseline gap-4 mb-10">
-            <span class="text-4xl font-black text-red-600">US$ {entry.data.price}</span>
-            <span class="text-sm text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full uppercase tracking-tighter">In Stock</span>
-        </div>
+        <div class="text-3xl font-black text-red-600 mb-10">US$ {entry.data.price}</div>
 
         <div class="grid grid-cols-2 gap-y-8 gap-x-4 border-y border-gray-100 py-10 mb-10">
           <div>
@@ -75,42 +91,28 @@ const relatedItems = allProducts
             <dt class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Reach</dt>
             <dd class="text-lg font-bold text-gray-900">{entry.data.reach}</dd>
           </div>
-          <div>
-            <dt class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Wavelength</dt>
-            <dd class="text-lg font-bold text-gray-900">{entry.data.wavelength}</dd>
-          </div>
-          <div>
-            <dt class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Connector</dt>
-            <dd class="text-lg font-bold text-gray-900">{entry.data.connector}</dd>
-          </div>
         </div>
 
-        <a href="https://wa.me/8617722444464" class="w-full bg-h-blue text-white py-5 rounded-2xl font-black text-center block hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
+        <a href={`https://wa.me/8617722444464?text=Inquiry for ${entry.data.pn}`} class="w-full bg-h-blue text-white py-5 rounded-2xl font-black text-center block hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 uppercase tracking-widest">
            INQUIRY VIA WHATSAPP
         </a>
-
-        <div class="mt-10 p-6 bg-gray-50 rounded-2xl space-y-4">
-            <div class="flex items-center gap-3 text-sm font-bold text-gray-700">
-                <i class="fa-solid fa-shield-halved text-h-blue"></i> 1-Year Warranty
-            </div>
-            <div class="flex items-center gap-3 text-sm font-bold text-gray-700">
-                <i class="fa-solid fa-truck-fast text-h-blue"></i> Global Fast Shipping
-            </div>
-        </div>
       </div>
     </div>
 
     {relatedItems.length > 0 && (
       <div class="mt-32">
-        <h3 class="text-2xl font-black mb-10 tracking-tight italic uppercase">Related Modules</h3>
+        <h3 class="text-2xl font-black mb-10 tracking-tight italic uppercase border-b-2 border-black inline-block">Related Modules</h3>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
           {relatedItems.map(item => (
-            <a href={`/products/${item.data.brand.toLowerCase()}/${item.data.pn}`} class="group border border-gray-100 p-4 rounded-2xl hover:shadow-xl transition-all">
-               <div class="aspect-square bg-gray-50 rounded-xl mb-4 overflow-hidden">
-                  <img src={`/images/products/${item.data.brand.toLowerCase()}/${item.data.pn}.jpg`} class="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+            <a href={`/products/${item.data.brand.toLowerCase()}/${item.data.pn}`} class="group">
+               <div class="aspect-square bg-gray-50 rounded-2xl mb-4 overflow-hidden border border-gray-100">
+                  <img 
+                    src={`/images/products/${item.data.brand.toLowerCase()}/${item.data.pn}.jpg`} 
+                    class="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500" 
+                  />
                </div>
-               <p class="text-xs font-bold text-h-blue">{item.data.brand}</p>
-               <h4 class="font-black text-gray-900">{item.data.pn}</h4>
+               <p class="text-[10px] font-bold text-h-blue uppercase">{item.data.brand}</p>
+               <h4 class="font-black text-gray-900 group-hover:text-h-blue transition-colors">{item.data.pn}</h4>
             </a>
           ))}
         </div>
