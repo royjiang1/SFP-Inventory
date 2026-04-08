@@ -1,0 +1,108 @@
+---
+// 接收页面标题
+const { title } = Astro.props;
+
+// 定义导航链接数据（方便管理）
+const navLinks = [
+  { name: 'HOME', url: '/' },
+  { name: 'CISCO', url: '/products/cisco' },
+  { name: 'HUAWEI', url: '/products/huawei' },
+  { name: 'FINISAR', url: '/products/finisar' },
+  { name: 'BROCADE', url: '/products/brocade' },
+];
+
+const brands = ['Acacia', 'Arista', 'Avago', 'Avaya', 'Ciena', 'Dell', 'Ericsson', 'Extreme Networks', 'F5', 'Fortinet', 'H3C', 'Hisense', 'Inno Light', 'Intel', 'JDSU', 'Mellanox', 'Raisecom', 'Solarflare', 'Source', 'ZTE', 'Others'];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style is:global>
+        body { font-family: 'Poppins', sans-serif; }
+        /* 导航线动画 */
+        .nav-link { position: relative; transition: color 0.3s ease; }
+        .nav-link::after {
+            content: ''; position: absolute; width: 0; height: 2px;
+            bottom: -4px; left: 0; background-color: #1D4ED8;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after { width: 100%; }
+        
+        /* 下拉菜单链接 */
+        .dropdown-brand-link {
+            position: relative; transition: color 0.3s ease;
+            font-size: 14px; font-weight: 600; color: #6B7280;
+            text-transform: uppercase; letter-spacing: 0.025em;
+        }
+        .dropdown-brand-link:hover { color: #1D4ED8; }
+        .dropdown-brand-link::after {
+            content: ''; position: absolute; width: 0; height: 2px;
+            bottom: -4px; left: 0; background-color: #1D4ED8;
+            transition: width 0.3s ease;
+        }
+        .dropdown-brand-link:hover::after { width: 100%; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-white sticky top-0 z-50 border-b border-gray-100 shadow-sm">
+        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-10">
+                <a href="/" class="text-3xl font-extrabold text-h-blue tracking-tighter">H-COM</a>
+                
+                <div class="hidden lg:flex items-center gap-9 text-[14px] font-semibold text-h-subtle uppercase tracking-tight">
+                    {navLinks.map(link => (
+                        <a href={link.url} class="nav-link hover:text-h-blue">{link.name}</a>
+                    ))}
+
+                    <div class="relative group h-full py-2">
+                        <button class="nav-link flex items-center gap-1 hover:text-h-blue group-hover:text-h-blue">
+                            MORE <i class="fa-solid fa-chevron-down text-[10px] transition-transform group-hover:rotate-180"></i>
+                        </button>
+                        <div class="absolute left-0 mt-2 w-[520px] bg-white border border-gray-100 shadow-xl rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                            <div class="p-4 grid grid-cols-3 gap-x-4 gap-y-1">
+                                {brands.map(brand => (
+                                    <a href={`/products/${brand.toLowerCase()}`} class="dropdown-brand-link py-1">{brand}</a>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center">
+                <div class="relative group">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-h-subtle text-sm group-focus-within:text-h-blue transition-colors"></i>
+                    <input type="search" placeholder="Search PN..." class="bg-h-gray border border-transparent rounded-full pl-11 pr-4 py-2 text-sm w-48 md:w-64 focus:w-80 transition-all duration-300 focus:bg-white focus:border-h-blue outline-none">
+                </div>
+            </div>
+        </nav>
+    </header>
+    <slot />
+
+    <footer class="bg-h-black text-gray-400 mt-32 pt-20 pb-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+                <div>
+                    <span class="text-3xl font-extrabold text-white tracking-tighter mb-6 block">H-COM</span>
+                    <p class="text-[13px] leading-relaxed">Global distributor of professional network components.</p>
+                </div>
+                <div>
+                    <h4 class="text-white font-bold mb-6 uppercase text-[11px] tracking-widest">Connect</h4>
+                    <p class="text-[13px] mb-2 font-semibold text-white">Hunan Zhaoyong Communication Tech Co., Ltd.</p>
+                    <p class="text-sm mt-2"><i class="fab fa-whatsapp mr-2"></i> +86 177 2244 4464</p>
+                    <p class="text-[13px] mb-4"><i class="fa-solid fa-envelope mr-2"></i> info@zhaoyongoptics.com</p>
+                </div>
+            </div>
+            <div class="pt-10 border-t border-gray-800 text-center text-[11px] font-medium uppercase tracking-widest">
+                <p>&copy; 2026 Hunan Zhaoyong Communication Technology Co., Ltd.</p>
+            </div>
+        </div>
+    </footer>
+    </body>
+</html>
