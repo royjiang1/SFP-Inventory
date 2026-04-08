@@ -11,6 +11,7 @@ const products = defineCollection({
     speed: z.string().optional(),
     reach: z.string().optional(),
     wavelength: z.string().optional(),
+    connector: z.string().optional(), // 建议增加这一行
     condition: z.string().default("Used - Tested"),
     schemaJson: z.any().optional(),
   }),
