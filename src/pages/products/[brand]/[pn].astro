@@ -2,79 +2,119 @@
 import { getCollection } from 'astro:content';
 import Layout from '../../../layouts/Layout.astro';
 
-// 强制开启预渲染（静态生成）
 export const prerender = true;
 
 export async function getStaticPaths() {
   const allProducts = await getCollection('products');
   return allProducts.map(entry => ({
-    params: { 
-      // 确保这里的 brand 和 pn 与文件夹名字一致
-      brand: entry.data.brand.toLowerCase(), 
-      pn: entry.data.pn 
-    },
-    props: { entry },
+    params: { brand: entry.data.brand.toLowerCase(), pn: entry.data.pn },
+    props: { entry, allProducts }, // 传递所有产品用于 Related Modules
   }));
 }
 
-const { entry } = Astro.props;
+const { entry, allProducts } = Astro.props;
 const { Content } = await entry.render();
+
+// 模拟多图逻辑：主图 + 备份图
+const mainImg = `/images/products/${entry.data.brand.toLowerCase()}/${entry.data.pn}.jpg`;
+const secondImg = `/images/products/${entry.data.brand.toLowerCase()}/${entry.data.pn} (2).jpg`;
+
+// Related Modules: 筛选同品牌的产品（排除当前这个）
+const relatedItems = allProducts
+  .filter(p => p.data.brand === entry.data.brand && p.data.pn !== entry.data.pn)
+  .slice(0, 4);
 ---
 
-<Layout title={`${entry.data.pn} | ${entry.data.brand} - H-COM`}>
-  <div class="max-w-7xl mx-auto px-4 py-12">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-      <div class="bg-gray-50 rounded-3xl p-8 flex items-center justify-center border border-gray-100">
-        <img 
-          src={`/images/products/${entry.data.brand.toLowerCase()}/${entry.data.pn}.jpg`} 
-          alt={entry.data.model}
-          class="w-full h-auto shadow-sm rounded-lg"
-          onerror="this.src='https://placehold.co/600x600/f3f4f6/111827?text=Product+Image'"
-        />
+<Layout title={`${entry.data.pn} - H-COM`}>
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    
+    <nav class="flex mb-8 text-[11px] font-bold uppercase tracking-widest text-gray-400">
+      <a href="/" class="hover:text-h-blue">HOME</a>
+      <span class="mx-3">/</span>
+      <a href={`/products/${entry.data.brand.toLowerCase()}`} class="hover:text-h-blue">{entry.data.brand}</a>
+      <span class="mx-3 text-h-blue">/</span>
+      <span class="text-gray-900">{entry.data.pn}</span>
+    </nav>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+      
+      <div class="lg:col-span-7 space-y-4">
+        <div class="relative overflow-hidden bg-gray-50 rounded-3xl border border-gray-100 group cursor-zoom-in">
+           <img 
+            id="mainDisplay"
+            src={mainImg} 
+            alt={entry.data.pn}
+            class="w-full h-auto transition-transform duration-500 group-hover:scale-125"
+          />
+        </div>
+        <div class="flex gap-4">
+            <button onclick={`document.getElementById('mainDisplay').src='${mainImg}'`} class="w-20 h-20 border-2 border-h-blue rounded-lg overflow-hidden">
+                <img src={mainImg} class="w-full h-full object-cover" />
+            </button>
+            <button onclick={`document.getElementById('mainDisplay').src='${secondImg}'`} class="w-20 h-20 border border-gray-200 hover:border-h-blue rounded-lg overflow-hidden">
+                <img src={secondImg} class="w-full h-full object-cover" onerror="this.parentElement.style.display='none'" />
+            </button>
+        </div>
       </div>
 
-      <div>
-        <nav class="flex mb-4 text-xs font-bold uppercase tracking-widest text-blue-600">
-          <a href="/" class="hover:underline">Inventory</a>
-          <span class="mx-2 text-gray-300">/</span>
-          <span>{entry.data.brand}</span>
-        </nav>
+      <div class="lg:col-span-5">
+        <h1 class="text-5xl font-black text-gray-900 tracking-tighter mb-2">{entry.data.pn}</h1>
+        <p class="text-xl text-gray-500 font-medium mb-6">{entry.data.model}</p>
         
-        <h1 class="text-4xl font-extrabold text-gray-900 mb-2">{entry.data.pn}</h1>
-        <p class="text-xl text-gray-500 mb-8 font-medium">{entry.data.model}</p>
+        <div class="flex items-baseline gap-4 mb-10">
+            <span class="text-4xl font-black text-red-600">US$ {entry.data.price}</span>
+            <span class="text-sm text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full uppercase tracking-tighter">In Stock</span>
+        </div>
 
-        <div class="text-3xl font-black text-red-600 mb-10">US$ {entry.data.price}</div>
-
-        <div class="grid grid-cols-2 gap-y-6 gap-x-4 border-t border-gray-100 pt-8">
+        <div class="grid grid-cols-2 gap-y-8 gap-x-4 border-y border-gray-100 py-10 mb-10">
           <div>
-            <dt class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Speed</dt>
-            <dd class="text-gray-900 font-semibold">{entry.data.speed}</dd>
+            <dt class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Speed</dt>
+            <dd class="text-lg font-bold text-gray-900">{entry.data.speed}</dd>
           </div>
           <div>
-            <dt class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Reach</dt>
-            <dd class="text-gray-900 font-semibold">{entry.data.reach}</dd>
+            <dt class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Reach</dt>
+            <dd class="text-lg font-bold text-gray-900">{entry.data.reach}</dd>
           </div>
           <div>
-            <dt class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Wavelength</dt>
-            <dd class="text-gray-900 font-semibold">{entry.data.wavelength}</dd>
+            <dt class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Wavelength</dt>
+            <dd class="text-lg font-bold text-gray-900">{entry.data.wavelength}</dd>
           </div>
           <div>
-            <dt class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Connector</dt>
-            <dd class="text-gray-900 font-semibold">{entry.data.connector}</dd>
+            <dt class="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Connector</dt>
+            <dd class="text-lg font-bold text-gray-900">{entry.data.connector}</dd>
           </div>
         </div>
 
-        <div class="mt-12">
-          <a href="https://wa.me/8617722444464" target="_blank" class="bg-black text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-blue-600 transition-colors inline-flex items-center gap-3">
-            <i class="fab fa-whatsapp text-lg"></i> INQUIRY NOW
-          </a>
+        <a href="https://wa.me/8617722444464" class="w-full bg-h-blue text-white py-5 rounded-2xl font-black text-center block hover:bg-blue-700 transition-all shadow-lg shadow-blue-100">
+           INQUIRY VIA WHATSAPP
+        </a>
+
+        <div class="mt-10 p-6 bg-gray-50 rounded-2xl space-y-4">
+            <div class="flex items-center gap-3 text-sm font-bold text-gray-700">
+                <i class="fa-solid fa-shield-halved text-h-blue"></i> 1-Year Warranty
+            </div>
+            <div class="flex items-center gap-3 text-sm font-bold text-gray-700">
+                <i class="fa-solid fa-truck-fast text-h-blue"></i> Global Fast Shipping
+            </div>
         </div>
       </div>
     </div>
 
-    <div class="mt-20 prose prose-slate max-w-none border-t border-gray-100 pt-10">
-      <h3 class="text-xl font-bold mb-6">Product Description</h3>
-      <Content />
-    </div>
+    {relatedItems.length > 0 && (
+      <div class="mt-32">
+        <h3 class="text-2xl font-black mb-10 tracking-tight italic uppercase">Related Modules</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+          {relatedItems.map(item => (
+            <a href={`/products/${item.data.brand.toLowerCase()}/${item.data.pn}`} class="group border border-gray-100 p-4 rounded-2xl hover:shadow-xl transition-all">
+               <div class="aspect-square bg-gray-50 rounded-xl mb-4 overflow-hidden">
+                  <img src={`/images/products/${item.data.brand.toLowerCase()}/${item.data.pn}.jpg`} class="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+               </div>
+               <p class="text-xs font-bold text-h-blue">{item.data.brand}</p>
+               <h4 class="font-black text-gray-900">{item.data.pn}</h4>
+            </a>
+          ))}
+        </div>
+      </div>
+    )}
   </div>
 </Layout>
