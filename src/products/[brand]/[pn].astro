@@ -1,0 +1,147 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+
+// 1. 生成所有动态路由
+export async function getStaticPaths() {
+  const allProducts = await getCollection('products');
+  return allProducts.map(entry => ({
+    params: { 
+      brand: entry.data.brand.toLowerCase(), 
+      pn: entry.data.pn 
+    },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { brand, pn, model, price, speed, reach, wavelength, connector, condition } = entry.data;
+const { Content } = await entry.render();
+
+// 2. 自动检测图片逻辑 (最多5张)
+// 规则：public/images/products/brand/pn.jpg, pn (2).jpg ...
+const imagePath = `/images/products/${brand.toLowerCase()}`;
+const images = [
+  `${imagePath}/${pn}.jpg`,
+  `${imagePath}/${pn} (2).jpg`,
+  `${imagePath}/${pn} (3).jpg`,
+  `${imagePath}/${pn} (4).jpg`,
+  `${imagePath}/${pn} (5).jpg`,
+];
+
+// 联系方式配置
+const contact = {
+  whatsapp: "8617722444464",
+  email: "info@zhaoyongoptics.com",
+  facebook: "https://www.facebook.com/profile.php?id=61556808129251"
+};
+---
+
+<Layout title={`${brand} ${pn} - ${model} | Zhaoyong Optics`}>
+  <script type="application/ld+json" is:inline set:html={JSON.stringify({
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": `${brand} ${pn}`,
+    "image": images[0],
+    "description": model,
+    "brand": { "@type": "Brand", "name": brand },
+    "offers": {
+      "@type": "Offer",
+      "price": price,
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock"
+    }
+  })} />
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <nav class="flex mb-10 text-[11px] font-bold text-h-subtle uppercase tracking-[0.1em]">
+      <ol class="inline-flex items-center space-x-2">
+        <li><a href="/" class="hover:text-h-black">Home</a></li>
+        <li class="text-gray-300">/</li>
+        <li><a href={`/products/${brand.toLowerCase()}`} class="hover:text-h-black">{brand}</a></li>
+        <li class="text-gray-300">/</li>
+        <li class="text-h-black">{pn}</li>
+      </ol>
+    </nav>
+
+    <div class="lg:grid lg:grid-cols-12 lg:gap-x-16">
+      <div class="lg:col-span-7 mb-12 lg:mb-0">
+        <div class="zoom-container mb-6 overflow-hidden rounded-xl bg-h-gray cursor-zoom-in border border-gray-100">
+          <img id="main-image" src={images[0]} alt={`${brand} ${pn}`} class="w-full h-auto transition-transform duration-500 hover:scale-110" />
+        </div>
+        <div class="grid grid-cols-5 gap-4" id="thumb-strip">
+          {images.map((img, index) => (
+            <img 
+              src={img} 
+              class={`cursor-pointer rounded-lg border-2 transition-all thumb-img ${index === 0 ? 'border-h-blue opacity-100' : 'border-transparent opacity-60'}`}
+              onerror="this.style.display='none'" 
+              onclick="changeImage(this)"
+            />
+          ))}
+        </div>
+      </div>
+
+      <div class="lg:col-span-5">
+        <div class="mb-4">
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 uppercase tracking-widest border border-amber-100">
+            {condition}
+          </span>
+        </div>
+        <h1 class="text-4xl font-bold text-h-black mb-2 tracking-tight">{brand} {pn}</h1>
+        <p class="text-xl text-h-blue font-semibold mb-6">Model: {model}</p>
+
+        <div class="space-y-6 mb-10 pb-8 border-b border-gray-100">
+          <div class="text-h-subtle text-sm leading-relaxed prose prose-slate">
+            <Content />
+          </div>
+
+          <div class="mt-4 flex items-baseline gap-3">
+            <span class="text-3xl font-extrabold text-red-600">USD ${price}</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-y-4 gap-x-8 text-[13px]">
+            <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-h-subtle">Speed:</span><span class="font-bold">{speed}</span></div>
+            <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-h-subtle">Reach:</span><span class="font-bold">{reach}</span></div>
+            <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-h-subtle">Wavelength:</span><span class="font-bold">{wavelength}</span></div>
+            <div class="flex justify-between border-b border-gray-50 pb-2"><span class="text-h-subtle">Connector:</span><span class="font-bold">{connector}</span></div>
+          </div>
+        </div>
+
+        <div class="mb-10">
+          <p class="text-[11px] font-bold text-h-subtle uppercase tracking-widest mb-4">Inquiry Now</p>
+          <div class="flex flex-row gap-3">
+            <a href={`https://wa.me/${contact.whatsapp}`} target="_blank" class="btn-action flex-1 flex items-center justify-center py-4 bg-[#25D366] text-white rounded-xl">
+              <i class="fa-brands fa-whatsapp text-xl"></i>
+            </a>
+            <a href={contact.facebook} target="_blank" class="btn-action flex-1 flex items-center justify-center py-4 bg-[#0084FF] text-white rounded-xl">
+              <i class="fa-brands fa-facebook-messenger text-xl"></i>
+            </a>
+            <a href={`mailto:${contact.email}`} class="btn-action flex-1 flex items-center justify-center py-4 bg-h-black text-white rounded-xl">
+              <i class="fa-regular fa-envelope text-xl"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<script is:inline>
+  function changeImage(thumbnail) {
+    const mainImg = document.getElementById('main-image');
+    mainImg.src = thumbnail.src;
+    
+    document.querySelectorAll('.thumb-img').forEach(img => {
+      img.classList.remove('border-h-blue', 'opacity-100');
+      img.classList.add('border-transparent', 'opacity-60');
+    });
+
+    thumbnail.classList.add('border-h-blue', 'opacity-100');
+    thumbnail.classList.remove('border-transparent', 'opacity-60');
+  }
+</script>
+
+<style>
+  .btn-action { transition: all 0.3s ease; }
+  .btn-action:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+</style>
