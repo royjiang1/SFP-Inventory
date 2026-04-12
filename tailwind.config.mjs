@@ -1,4 +1,6 @@
-/** @type {import('tailwindcss').Config} */
+import { defineConfig } from 'astro/config';
+import tailwind from '@astrojs/tailwind';
+
 export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
   theme: {
@@ -10,7 +12,8 @@ export default {
         'h-gray': '#F3F4F6',
       },
       fontFamily: {
-        sans: ['Poppins', 'sans-serif'],
+        // 删掉 Poppins，改为系统字体
+        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
     },
   },
