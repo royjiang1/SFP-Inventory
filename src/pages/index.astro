@@ -7,43 +7,76 @@ const allProducts = await getCollection('products');
 ---
 
 <Layout title="H-COM | Professional SFP & Optical Transceivers Inventory">
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="text-center mb-20">
-      <h1 class="text-5xl font-extrabold text-h-black tracking-tighter mb-4">
-        SFP <span class="text-h-blue">INVENTORY</span>
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div class="text-center mb-16">
+      <h1 class="text-4xl md:text-6xl font-[900] text-h-black tracking-tight mb-6">
+        SFP <span class="text-h-blue italic">INVENTORY</span>
       </h1>
-      <p class="text-h-subtle max-w-2xl mx-auto">
-        Global distributor of professional network components. Original modules, fully tested with 1-year warranty.
+      <p class="text-h-subtle max-w-2xl mx-auto text-lg font-medium leading-relaxed">
+        Global distributor of professional network components. <br class="hidden md:block" /> 
+        Original modules, fully tested with 1-year warranty.
       </p>
     </div>
 
     <section>
-      <div class="flex items-center justify-between mb-8 border-b border-gray-100 pb-4">
-        <h2 class="text-xl font-bold text-h-black">Latest Stock</h2>
-        <span class="text-sm text-h-subtle font-medium">{allProducts.length} Products Available</span>
+      <div class="flex items-end justify-between mb-10 border-b-2 border-gray-50 pb-6">
+        <div>
+          <h2 class="text-2xl font-black text-h-black uppercase tracking-tighter">Latest Stock</h2>
+          <div class="h-1 w-12 bg-h-blue mt-1"></div>
+        </div>
+        <span class="text-[12px] text-h-subtle font-bold bg-h-gray px-3 py-1 rounded-full uppercase tracking-wider">
+          {allProducts.length} Items In-Stock
+        </span>
       </div>
 
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10">
         {allProducts.map(product => (
-          <div class="group bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-xl transition-all duration-500">
-            <a href={`/products/${product.data.brand.toLowerCase()}/${product.data.pn}`}>
-              <div class="aspect-square bg-h-gray rounded-xl mb-6 overflow-hidden flex items-center justify-center p-2">
+          <div class="group relative bg-white rounded-[24px] border border-gray-100 p-4 hover:border-h-blue/20 hover:shadow-[0_20px_50px_rgba(29,78,216,0.1)] transition-all duration-500 flex flex-col">
+            <a href={`/products/${product.data.brand.toLowerCase()}/${product.data.pn}`} class="flex flex-col h-full">
+              
+              <div class="aspect-square bg-h-gray rounded-[20px] mb-6 overflow-hidden flex items-center justify-center p-6 relative">
+                <div class="absolute inset-0 bg-gradient-to-tr from-h-blue/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 <img 
                   src={`/images/products/${product.data.brand.toLowerCase()}/${product.data.pn}.jpg`} 
                   alt={product.data.model}
-                  class="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-700 text-xs"
+                  class="w-full h-full object-contain group-hover:scale-110 transition-transform duration-700 relative z-10"
                   onerror="this.src='https://placehold.co/400x400/f3f4f6/111827?text=No+Image'"
                 />
               </div>
-              <span class="text-[10px] font-bold text-h-blue uppercase mb-2 block tracking-widest">{product.data.brand}</span>
-              <h3 class="font-extrabold text-h-black mb-1 group-hover:text-h-blue transition-colors line-clamp-1">{product.data.pn}</h3>
-              <p class="text-[11px] text-h-subtle font-medium mb-4 line-clamp-1">{product.data.model}</p>
+
+              <div class="px-1 flex-grow">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="text-[10px] font-black text-white bg-h-blue px-2 py-0.5 rounded shadow-sm uppercase tracking-widest">
+                    {product.data.brand}
+                  </span>
+                </div>
+                
+                <h3 class="font-black text-h-black text-lg mb-1 group-hover:text-h-blue transition-colors line-clamp-1 uppercase tracking-tight">
+                  {product.data.pn}
+                </h3>
+                
+                <p class="text-[12px] text-h-subtle font-bold mb-4 line-clamp-1 italic">
+                  {product.data.model}
+                </p>
+
+                <div class="flex flex-wrap gap-2 mb-6">
+                  <span class="text-[9px] font-bold text-gray-500 border border-gray-200 px-2 py-0.5 rounded uppercase">{product.data.speed}</span>
+                  <span class="text-[9px] font-bold text-gray-500 border border-gray-200 px-2 py-0.5 rounded uppercase">{product.data.reach}</span>
+                </div>
+              </div>
               
-              <div class="flex items-center justify-between mt-auto">
-                <div class="text-lg font-extrabold text-red-600">US$ {product.data.price}</div>
-                <div class="inline-flex items-center gap-2 text-[10px] font-bold text-h-black group-hover:text-h-blue transition-colors">
-                  DETAILS 
-                  <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
+              <div class="mt-auto pt-4 border-t border-gray-50 flex items-center justify-between px-1">
+                <div class="flex flex-col">
+                  <span class="text-[9px] font-bold text-h-subtle uppercase tracking-tighter">Price</span>
+                  <div class="text-xl font-[900] text-red-600 leading-none mt-1">
+                    <span class="text-sm font-bold">US$</span> {product.data.price}
+                  </div>
+                </div>
+                
+                <div class="w-10 h-10 rounded-full bg-h-black text-white flex items-center justify-center group-hover:bg-h-blue group-hover:rotate-[-45deg] transition-all duration-500 shadow-lg">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
                 </div>
               </div>
             </a>
@@ -53,3 +86,11 @@ const allProducts = await getCollection('products');
     </section>
   </main>
 </Layout>
+
+<style>
+  /* 增加页面整体的丝滑感 */
+  html {
+    scroll-behavior: smooth;
+    background-color: #fcfcfc;
+  }
+</style>
