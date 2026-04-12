@@ -25,7 +25,7 @@ const allProducts = await getCollection('products');
 
       <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {allProducts.map(product => (
-          <div class="group bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-xl transition-all duration-500">
+          <div class="group bg-white rounded-2xl border border-gray-100 p-5 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300">
             <a href={`/products/${product.data.brand.toLowerCase()}/${product.data.pn}`}>
               <div class="aspect-square bg-h-gray rounded-xl mb-6 overflow-hidden flex items-center justify-center p-2">
                 <img 
