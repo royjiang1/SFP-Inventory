@@ -1,5 +1,5 @@
 ---
-const { title, description = "Global distributor of professional network components. Specializing in SFP, Switches, and optical transceivers." } = Astro.props;
+const { title } = Astro.props;
 const currentPath = Astro.url.pathname.toLowerCase();
 
 const navLinks = [
@@ -26,131 +26,110 @@ const brands = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title} | H-COM</title>
-    <meta name="description" content={description} />
-    <meta name="robots" content="index, follow" />
-    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script is:inline src="https://cdn.tailwindcss.com"></script>
+    <script is:inline>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        'h-blue': '#1D4ED8', 'h-gray': '#F3F4F6', 'h-black': '#111827', 'h-subtle': '#6B7280',
+                    }
+                }
+            }
+        }
+    </script>
     <style is:global>
-        @tailwind base;
-        @tailwind components;
-        @tailwind utilities;
-
-        :root {
-            --h-blue: #1D4ED8;
-            --h-gray: #F3F4F6;
-            --h-black: #111827;
-            --h-subtle: #6B7280;
-        }
-
-        body { 
-            /* 采用系统字体栈：极速加载且在各平台都美观 */
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-            background-color: white; 
-            color: var(--h-black); 
-        }
-
-        /* 移动端渲染优化 */
-        html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
-        
+        body { font-family: 'Poppins', sans-serif; background-color: white; color: #111827; scroll-behavior: smooth; }
         .nav-link { position: relative; transition: color 0.3s ease; }
         .nav-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -4px;
-            left: 0;
-            background-color: var(--h-blue);
-            transition: width 0.3s ease;
+            content: ''; position: absolute; width: 0; height: 2px; bottom: -4px; left: 0;
+            background-color: #1D4ED8; transition: width 0.3s ease;
         }
         .nav-link:hover::after, .nav-link.active::after { width: 100%; }
-
-        .dropdown-brand-link {
-            transition: color 0.3s ease;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--h-subtle);
-            text-transform: uppercase;
-            letter-spacing: 0.025em;
-            white-space: nowrap;
+        
+        /* 找回下拉品牌下划线 */
+        .dropdown-brand-link { position: relative; transition: all 0.3s ease; }
+        .dropdown-brand-link::after {
+            content: ''; position: absolute; width: 0; height: 1.5px; bottom: 0; left: 0;
+            background-color: #1D4ED8; transition: width 0.3s ease;
         }
-        .dropdown-brand-link:hover { color: var(--h-blue); }
+        .dropdown-brand-link:hover::after { width: 100%; }
     </style>
 </head>
 <body class="antialiased">
-
-    <header class="bg-white sticky top-0 z-50 border-b border-gray-100 shadow-sm">
-        <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+    <header class="bg-white sticky top-0 z-50 border-b border-gray-100 shadow-sm px-4 sm:px-6 lg:px-8 py-4">
+        <nav class="max-w-7xl mx-auto flex items-center justify-between">
             <div class="flex items-center gap-10">
-                <a href="/" class="text-3xl font-extrabold text-[#1D4ED8] tracking-tighter">H-COM</a>
-                
-                <div class="hidden lg:flex items-center gap-9 text-[14px] font-semibold uppercase tracking-tight">
-                    {navLinks.map(link => {
-                        const isActive = link.name !== 'HOME' && currentPath.includes(link.name.toLowerCase());
-                        return (
-                            <a href={link.url} class={`nav-link hover:text-[#1D4ED8] transition-colors ${isActive ? 'active text-[#1D4ED8]' : 'text-[#6B7280]'}`}>
-                                {link.name}
-                            </a>
-                        );
-                    })}
-
-                    <div class="relative group h-full py-2">
-                        <button class="nav-link text-[#6B7280] flex items-center gap-1 hover:text-[#1D4ED8]">
+                <a href="/" class="text-3xl font-extrabold text-h-blue tracking-tighter">H-COM</a>
+                <div class="hidden lg:flex items-center gap-9 text-[13px] font-bold uppercase tracking-tight">
+                    {navLinks.map(link => (
+                        <a href={link.url} class={`nav-link hover:text-h-blue transition-colors ${currentPath.includes(link.name.toLowerCase()) ? 'active text-h-blue' : 'text-h-subtle'}`}>
+                            {link.name}
+                        </a>
+                    ))}
+                    <div class="relative group py-2">
+                        <button class="nav-link text-h-subtle flex items-center gap-1 hover:text-h-blue group-hover:text-h-blue uppercase">
                             MORE 
-                            <svg class="w-2.5 h-2.5 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"></path></svg>
+                            <svg class="w-2.5 h-2.5 transition-transform group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                        <div class="absolute left-0 mt-2 w-[520px] bg-white border border-gray-100 shadow-xl rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                            <div class="p-4 grid grid-cols-3 gap-x-4 gap-y-1">
-                                {brands.map(brand => (
-                                    <a href={`/products/${brand.toLowerCase()}`} class="dropdown-brand-link py-1">{brand}</a>
-                                ))}
-                            </div>
+                        <div class="absolute left-0 mt-2 w-[520px] bg-white border border-gray-100 shadow-2xl rounded-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 p-6 grid grid-cols-3 gap-x-4 gap-y-2">
+                            {brands.map(brand => (
+                                <a href={`/products/${brand.toLowerCase()}`} class="dropdown-brand-link text-[13px] font-bold text-gray-500 hover:text-h-blue py-1">{brand}</a>
+                            ))}
                         </div>
                     </div>
                 </div>
             </div>
-
-            <div class="flex items-center">
-                <form action="/search" method="GET" class="relative group">
-                    <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7280] group-focus-within:text-[#1D4ED8]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input name="q" type="search" placeholder="Search PN..." class="bg-[#F3F4F6] border border-transparent rounded-full pl-11 pr-4 py-2 text-sm w-48 md:w-64 focus:w-80 transition-all duration-300 focus:bg-white focus:border-[#1D4ED8] outline-none">
-                </form>
+            <div class="relative group">
+                <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-h-subtle" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="search" placeholder="Search PN..." class="bg-h-gray border border-transparent rounded-full pl-11 pr-4 py-2 text-sm w-44 md:w-60 focus:w-72 transition-all duration-300 focus:bg-white focus:border-h-blue outline-none">
             </div>
         </nav>
     </header>
 
-    <main><slot /></main>
+    <slot />
 
-    <footer class="bg-[#111827] text-gray-400 mt-32 pt-20 pb-10">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer class="bg-h-black text-gray-400 mt-32 pt-20 pb-10 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                 <div>
                     <span class="text-3xl font-extrabold text-white tracking-tighter mb-6 block">H-COM</span>
-                    <p class="text-[13px] leading-relaxed">Global distributor of professional network components.</p>
+                    <p class="text-[13px] leading-relaxed">Global distributor of professional network components. Specializing in SFP, Switches, and optical transceivers.</p>
                 </div>
                 <div>
                     <h4 class="text-white font-bold mb-6 uppercase text-[11px] tracking-widest">Quick Links</h4>
                     <ul class="space-y-4 text-[13px] font-medium">
                         <li><a href="/" class="hover:text-white transition">Home</a></li>
+                        <li><a href="#" class="hover:text-white transition">About Us</a></li>
+                        <li><a href="#" class="hover:text-white transition">Terms of Service</a></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 class="text-white font-bold mb-6 uppercase text-[11px] tracking-widest">Brands</h4>
+                    <h4 class="text-white font-bold mb-6 uppercase text-[11px] tracking-widest">Top Brands</h4>
                     <ul class="space-y-4 text-[13px] font-medium">
+                        <li><a href="/products/cisco" class="hover:text-white transition">Cisco Systems</a></li>
                         <li><a href="/products/huawei" class="hover:text-white transition">Huawei</a></li>
-                        <li><a href="/products/cisco" class="hover:text-white transition">Cisco</a></li>
+                        <li><a href="/products/juniper" class="hover:text-white transition">Juniper Networks</a></li>
                     </ul>
                 </div>
                 <div>
                     <h4 class="text-white font-bold mb-6 uppercase text-[11px] tracking-widest">Connect</h4>
-                    <div class="not-italic text-[13px] space-y-3">
-                        <p class="font-semibold text-white">Hunan Zhaoyong Communication Tech Co., Ltd.</p>
-                        <p class="flex items-center gap-2"><svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.067 2.877 1.215 3.076.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.938 3.659 1.435 5.63 1.436h.008c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg> +86 177 2244 4464</p>
-                        <p class="flex items-center gap-2"><svg class="w-4 h-4 fill-none stroke-current" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> info@zhaoyongoptics.com</p>
+                    <p class="text-[13px] mb-4 font-semibold text-white">Hunan Zhaoyong Communication Tech Co., Ltd.</p>
+                    <div class="space-y-3 mb-6">
+                        <a href="https://wa.me/8617722444464" class="flex items-center gap-2 hover:text-white transition text-[13px]"><svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.067 2.877 1.215 3.076.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.72.938 3.659 1.435 5.63 1.436h.008c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg> +86 177 2244 4464</a>
+                        <a href="mailto:info@zhaoyongoptics.com" class="flex items-center gap-2 hover:text-white transition text-[13px]"><svg class="w-4 h-4 fill-none stroke-current" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> info@zhaoyongoptics.com</a>
+                    </div>
+                    <div class="flex gap-5">
+                        <a href="https://www.facebook.com/profile.php?id=61556808129251" target="_blank" class="hover:text-blue-500 transition-colors"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+                        <a href="#" class="hover:text-white transition-colors"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+                        <a href="#" class="hover:text-blue-400 transition-colors"><svg class="w-5 h-5 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.577.688.48C19.137 20.164 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg></a>
                     </div>
                 </div>
             </div>
-            <div class="pt-10 border-t border-gray-800 text-center text-[11px] font-medium uppercase tracking-widest">
-                <p>&copy; 2026 Hunan Zhaoyong Communication Technology Co., Ltd.</p>
+            <div class="pt-10 border-t border-gray-800 text-center text-[11px] font-bold uppercase tracking-[0.2em]">
+                <p>&copy; 2026 HUNAN ZHAOYONG COMMUNICATION TECHNOLOGY CO., LTD.</p>
             </div>
         </div>
     </footer>
