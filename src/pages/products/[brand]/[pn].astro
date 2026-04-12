@@ -1,6 +1,5 @@
 ---
 import { getCollection } from 'astro:content';
-import { Image } from 'astro:assets'; // 核心：使用 Astro 原生图片处理
 import Layout from '../../../layouts/Layout.astro';
 
 export const prerender = true;
@@ -16,10 +15,10 @@ export async function getStaticPaths() {
 const { entry, allProducts } = Astro.props;
 const { Content } = await entry.render();
 
-// SEO Meta Description 自动生成 (修复报告中缺失 meta 描述的问题 )
+// SEO 优化：自动生成描述（修复报告中的 SEO 问题）
 const metaDescription = `Professional ${entry.data.brand} ${entry.data.model} (${entry.data.pn}). Features ${entry.data.speed} speed, ${entry.data.reach} reach. Original quality with 1-year warranty.`;
 
-// 1. 动态图片识别 (假设你已将 R2 映射到 /images/ 路径或使用本地 assets)
+// 图片逻辑优化
 const allImages = import.meta.glob('/public/images/products/**/*.{jpg,jpeg,png,webp}', { eager: true });
 const productImages = Object.keys(allImages)
   .filter(path => {
@@ -32,7 +31,7 @@ const productImages = Object.keys(allImages)
 
 const displayImages = productImages.length > 0 ? productImages : ['https://placehold.co/600x600?text=No+Image'];
 
-// 2. 相关推荐逻辑 (4x2 布局)
+// 相关推荐 (4x2 布局)
 const relatedItems = allProducts
   .filter(p => p.id !== entry.id)
   .map(p => {
@@ -62,14 +61,18 @@ const messengerUrl = "https://m.me/61556808129251";
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         <div class="lg:col-span-7 space-y-4">
-            <div class="relative overflow-hidden bg-white rounded-3xl border border-gray-100 group">
+            <div class="relative overflow-hidden bg-gray-50 rounded-3xl border border-gray-100 group aspect-[6/5] flex items-center justify-center">
                 <img 
                     id="mainDisplay" 
                     src={displayImages[0]} 
                     alt={`${entry.data.brand} ${entry.data.pn} Main View`} 
+                    /* 关键性能优化：最高优先级，同步解码，显式宽高 */
                     fetchpriority="high"
                     loading="eager"
-                    class="w-full h-auto max-h-[550px] object-contain transition-transform duration-500 group-hover:scale-110" 
+                    decoding="sync"
+                    width="700"
+                    height="580"
+                    class="w-full h-full object-contain transition-transform duration-500 group-hover:scale-110" 
                 />
             </div>
             
@@ -79,9 +82,9 @@ const messengerUrl = "https://m.me/61556808129251";
                         <button 
                             onclick={`document.getElementById('mainDisplay').src='${img}'`} 
                             aria-label="View product gallery image"
-                            class="w-20 h-20 border border-gray-200 hover:border-blue-600 rounded-xl overflow-hidden transition-all focus:ring-2 focus:ring-blue-500"
+                            class="w-20 h-20 border border-gray-200 hover:border-blue-600 rounded-xl overflow-hidden transition-all focus:ring-2 focus:ring-blue-500 bg-white"
                         >
-                            <img src={img} alt="Thumbnail" class="w-full h-full object-cover" loading="lazy" />
+                            <img src={img} alt="Thumbnail" width="80" height="80" class="w-full h-full object-cover" loading="lazy" />
                         </button>
                     ))}
                 </div>
@@ -118,13 +121,13 @@ const messengerUrl = "https://m.me/61556808129251";
             <div class="mb-10">
                 <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-4">Contact & Inquiry</p>
                 <div class="flex flex-row gap-3">
-                    <a href="https://wa.me/8617722444464" target="_blank" aria-label="Contact on WhatsApp" class="flex-1 flex items-center justify-center py-4 bg-[#25D366] text-white rounded-xl hover:shadow-lg transition-all">
+                    <a href="https://wa.me/8617722444464" target="_blank" class="flex-1 flex items-center justify-center py-4 bg-[#25D366] text-white rounded-xl hover:shadow-lg transition-all">
                         <i class="fa-brands fa-whatsapp text-xl"></i>
                     </a>
-                    <a href={messengerUrl} target="_blank" aria-label="Contact on Messenger" class="flex-1 flex items-center justify-center py-4 bg-[#0084FF] text-white rounded-xl hover:shadow-lg transition-all">
+                    <a href={messengerUrl} target="_blank" class="flex-1 flex items-center justify-center py-4 bg-[#0084FF] text-white rounded-xl hover:shadow-lg transition-all">
                         <i class="fa-brands fa-facebook-messenger text-xl"></i>
                     </a>
-                    <a href="mailto:info@zhaoyongoptics.com" aria-label="Send Email" class="flex-1 flex items-center justify-center py-4 bg-gray-900 text-white rounded-xl hover:shadow-lg transition-all">
+                    <a href="mailto:info@zhaoyongoptics.com" class="flex-1 flex items-center justify-center py-4 bg-gray-900 text-white rounded-xl hover:shadow-lg transition-all">
                         <i class="fa-regular fa-envelope text-xl"></i>
                     </a>
                 </div>
@@ -133,9 +136,9 @@ const messengerUrl = "https://m.me/61556808129251";
             <div class="mt-6 pt-4 border-t border-gray-200 flex flex-wrap items-center gap-3">
                 <span class="text-sm font-medium text-gray-600"><i class="fas fa-share-alt mr-1"></i> Share:</span>
                 <div class="flex gap-4">
-                    <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" aria-label="Share on Facebook" class="text-gray-400 hover:text-[#1877f2] text-xl transition-colors"><i class="fa-brands fa-facebook-f"></i></a>
-                    <a href={`https://twitter.com/intent/tweet?url=${shareUrl}`} target="_blank" aria-label="Share on X (Twitter)" class="text-gray-400 hover:text-black text-xl transition-colors"><i class="fa-brands fa-x-twitter"></i></a>
-                    <a href={`https://t.me/share/url?url=${shareUrl}`} target="_blank" aria-label="Share on Telegram" class="text-gray-400 hover:text-[#26A5E4] text-xl transition-colors"><i class="fa-brands fa-telegram"></i></a>
+                    <a href={`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}`} target="_blank" class="text-gray-400 hover:text-[#1877f2] text-xl transition-colors"><i class="fa-brands fa-facebook-f"></i></a>
+                    <a href={`https://twitter.com/intent/tweet?url=${shareUrl}`} target="_blank" class="text-gray-400 hover:text-black text-xl transition-colors"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href={`https://t.me/share/url?url=${shareUrl}`} target="_blank" class="text-gray-400 hover:text-[#26A5E4] text-xl transition-colors"><i class="fa-brands fa-telegram"></i></a>
                 </div>
             </div>
         </div>
@@ -143,15 +146,15 @@ const messengerUrl = "https://m.me/61556808129251";
 
     <section class="mt-24 border-t border-gray-100 pt-16">
         <h2 class="text-[14px] font-bold text-blue-800 text-center uppercase tracking-[0.3em] mb-16">Purchase Information</h2>
-        <div class="grid md:grid-cols-4 gap-12">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-12 text-center md:text-left">
             <div class="space-y-4">
-                <div class="flex items-center gap-3 text-blue-700">
+                <div class="flex items-center justify-center md:justify-start gap-3 text-blue-700">
                     <i class="fa-solid fa-gem text-xl"></i>
                     <h3 class="font-bold text-[15px] text-gray-900">Authenticity</h3>
                 </div>
                 <p class="text-xs text-gray-500 leading-relaxed font-medium">100% original modules sourced from reputable manufacturers. Part numbers verified for compatibility.</p>
             </div>
-            </div>
+        </div>
     </section>
 
     <section class="mt-32">
@@ -165,6 +168,8 @@ const messengerUrl = "https://m.me/61556808129251";
                               <img 
                                 src={`/images/products/${item.data.brand.toLowerCase()}/${item.data.pn}.jpg`} 
                                 alt={`${item.data.brand} ${item.data.pn}`}
+                                width="200"
+                                height="200"
                                 loading="lazy"
                                 class="w-full h-auto group-hover:scale-110 transition-transform duration-700"
                               />
