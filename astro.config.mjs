@@ -1,24 +1,19 @@
 import { defineConfig } from 'astro/config';
 import tailwind from '@astrojs/tailwind';
-import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
-  // 使用静态模式，最适合不需要登录功能的展示型网站
+  // 核心：保持静态输出，这样不需要任何适配器插件
   output: 'static',
   
   integrations: [
     tailwind({
-      // 这里的配置会自动将 Tailwind 样式注入到 HTML
+      // 禁用默认的基础样式注入，我们在 Layout 里手动控制
       applyBaseStyles: false, 
     })
   ],
 
-  adapter: cloudflare({
-    mode: 'directory', // 目录模式在 CF Pages 上性能最稳
-  }),
-
-  // 图像优化配置（既然你用了 cloudflare 适配器）
-  image: {
-    service: { entrypoint: 'astro/assets/services/noop' } 
+  build: {
+    // 确保生成的路径结构适合 Cloudflare Pages
+    format: 'directory'
   }
 });
