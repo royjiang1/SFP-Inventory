@@ -1,10 +1,6 @@
 ---
-import '../styles/global.css'; // 添加这一行
-
-// 接收页面标题和描述
+// 彻底移除外部 CSS 引用，改用下方的内联方式
 const { title, description = "Global distributor of professional network components. Specializing in SFP, Switches, and optical transceivers." } = Astro.props;
-
-// 获取当前页面的路径
 const currentPath = Astro.url.pathname.toLowerCase();
 
 const navLinks = [
@@ -30,7 +26,6 @@ const brands = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>{title} | H-COM</title>
     <meta name="description" content={description} />
     <meta name="robots" content="index, follow" />
@@ -40,29 +35,30 @@ const brands = [
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" media="print" onload="this.media='all'">
-    
-    <script is:inline>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Poppins', 'sans-serif'],
-                    },
-                    colors: {
-                        'h-blue': '#1D4ED8',   
-                        'h-gray': '#F3F4F6',   
-                        'h-black': '#111827',  
-                        'h-subtle': '#6B7280', 
-                    }
-                }
-            }
-        }
-    </script>
 
     <style is:global>
-        /* 提升渲染性能：避免字体加载期间文字不可见 */
-        body { font-family: 'Poppins', sans-serif; background-color: white; color: #111827; font-display: swap; }
-        
+        @tailwind base;
+        @tailwind components;
+        @tailwind utilities;
+
+        :root {
+            --h-blue: #1D4ED8;
+            --h-gray: #F3F4F6;
+            --h-black: #111827;
+            --h-subtle: #6B7280;
+        }
+
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: white; 
+            color: var(--h-black); 
+            font-display: swap; 
+        }
+
+        /* 移动端渲染优化 */
+        html { touch-action: manipulation; -webkit-text-size-adjust: 100%; }
+        img { content-visibility: auto; }
+
         .nav-link { position: relative; transition: color 0.3s ease; }
         .nav-link::after {
             content: '';
@@ -71,7 +67,7 @@ const brands = [
             height: 2px;
             bottom: -4px;
             left: 0;
-            background-color: #1D4ED8;
+            background-color: var(--h-blue);
             transition: width 0.3s ease;
         }
         .nav-link:hover::after, .nav-link.active::after { width: 100%; }
@@ -81,23 +77,12 @@ const brands = [
             transition: color 0.3s ease;
             font-size: 14px;
             font-weight: 600;
-            color: #6B7280;
+            color: var(--h-subtle);
             text-transform: uppercase;
             letter-spacing: 0.025em;
             white-space: nowrap;
         }
-        .dropdown-brand-link::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -4px;
-            left: 0;
-            background-color: #1D4ED8;
-            transition: width 0.3s ease;
-        }
-        .dropdown-brand-link:hover { color: #1D4ED8; }
-        .dropdown-brand-link:hover::after { width: 100%; }
+        .dropdown-brand-link:hover { color: var(--h-blue); }
     </style>
 </head>
 <body class="antialiased">
@@ -105,7 +90,7 @@ const brands = [
     <header class="bg-white sticky top-0 z-50 border-b border-gray-100 shadow-sm">
         <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between" aria-label="Main Navigation">
             <div class="flex items-center gap-10">
-                <a href="/" class="text-3xl font-extrabold text-h-blue tracking-tighter">H-COM</a>
+                <a href="/" class="text-3xl font-extrabold text-[#1D4ED8] tracking-tighter">H-COM</a>
                 
                 <div class="hidden lg:flex items-center gap-9 text-[14px] font-semibold uppercase tracking-tight">
                     {navLinks.map(link => {
@@ -113,7 +98,7 @@ const brands = [
                         return (
                             <a 
                                 href={link.url} 
-                                class={`nav-link hover:text-h-blue transition-colors ${isActive ? 'active text-h-blue' : 'text-h-subtle'}`}
+                                class={`nav-link hover:text-[#1D4ED8] transition-colors ${isActive ? 'active text-[#1D4ED8]' : 'text-[#6B7280]'}`}
                             >
                                 {link.name}
                             </a>
@@ -121,7 +106,7 @@ const brands = [
                     })}
 
                     <div class="relative group h-full py-2">
-                        <button class="nav-link text-h-subtle flex items-center gap-1 hover:text-h-blue group-hover:text-h-blue" aria-haspopup="true">
+                        <button class="nav-link text-[#6B7280] flex items-center gap-1 hover:text-[#1D4ED8]" aria-haspopup="true">
                             MORE <i class="fa-solid fa-chevron-down text-[10px] transition-transform group-hover:rotate-180"></i>
                         </button>
                         <div class="absolute left-0 mt-2 w-[520px] bg-white border border-gray-100 shadow-xl rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
@@ -137,17 +122,18 @@ const brands = [
 
             <div class="flex items-center">
                 <form action="/search" method="GET" class="relative group">
-                    <label for="search-input" class="sr-only">Search Part Number</label>
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-h-subtle text-sm group-focus-within:text-h-blue transition-colors"></i>
-                    <input id="search-input" name="q" type="search" placeholder="Search PN..." class="bg-h-gray border border-transparent rounded-full pl-11 pr-4 py-2 text-sm w-48 md:w-64 focus:w-80 transition-all duration-300 focus:bg-white focus:border-h-blue outline-none">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7280] text-sm group-focus-within:text-[#1D4ED8] transition-colors"></i>
+                    <input name="q" type="search" placeholder="Search PN..." class="bg-[#F3F4F6] border border-transparent rounded-full pl-11 pr-4 py-2 text-sm w-48 md:w-64 focus:w-80 transition-all duration-300 focus:bg-white focus:border-[#1D4ED8] outline-none">
                 </form>
             </div>
         </nav>
     </header>
 
-    <slot />
+    <main>
+        <slot />
+    </main>
 
-    <footer class="bg-h-black text-gray-400 mt-32 pt-20 pb-10">
+    <footer class="bg-[#111827] text-gray-400 mt-32 pt-20 pb-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
                 <div>
@@ -161,7 +147,6 @@ const brands = [
                     <ul class="space-y-4 text-[13px] font-medium">
                         <li><a href="/" class="hover:text-white transition">Home</a></li>
                         <li><a href="#" class="hover:text-white transition">About Us</a></li>
-                        <li><a href="#" class="hover:text-white transition">Terms of Service</a></li>
                         <li><a href="#" class="hover:text-white transition">Support</a></li>
                     </ul>
                 </div>
@@ -171,7 +156,6 @@ const brands = [
                         <li><a href="/products/huawei" class="hover:text-white transition">Huawei</a></li>
                         <li><a href="/products/cisco" class="hover:text-white transition">Cisco</a></li>
                         <li><a href="/products/juniper" class="hover:text-white transition">Juniper</a></li>
-                        <li><a href="/products/nokia" class="hover:text-white transition">Nokia</a></li>
                     </ul>
                 </div>
                 <div>
@@ -181,13 +165,6 @@ const brands = [
                         <p class="text-sm mt-2"><i class="fab fa-whatsapp mr-2"></i> +86 177 2244 4464</p>
                         <p class="text-[13px] mb-4"><i class="fa-solid fa-envelope mr-2"></i> info@zhaoyongoptics.com</p>
                     </address>
-                    
-                    <div class="flex gap-4">
-                        <a href="https://www.facebook.com/profile.php?id=61556808129251" target="_blank" aria-label="Facebook" class="hover:text-h-blue transition-colors"><i class="fa-brands fa-facebook-f text-lg"></i></a>
-                        <a href="#" aria-label="Twitter" class="hover:text-white transition-colors"><i class="fa-brands fa-x-twitter text-lg"></i></a>
-                        <a href="#" aria-label="Telegram" class="hover:text-[#26A5E4] transition-colors"><i class="fa-brands fa-telegram text-lg"></i></a>
-                        <a href="#" aria-label="LinkedIn" class="hover:text-[#0a66c2] transition-colors"><i class="fa-brands fa-linkedin-in text-lg"></i></a>
-                    </div>
                 </div>
             </div>
             <div class="pt-10 border-t border-gray-800 text-center text-[11px] font-medium uppercase tracking-widest">
